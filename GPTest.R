@@ -7,7 +7,7 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 numInputs = 85
 dimensions = 2
 
-set.seed(3)
+set.seed(seed = NULL)
 inputs = maximinLHS(numInputs, dimensions)
 inputs
 outputs <- cornerPeak(inputs[1,])
