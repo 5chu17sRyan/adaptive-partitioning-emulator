@@ -1,5 +1,6 @@
 library(GPfit)
 library(lhs)
+library(ramify)
 
 ## 1D Example 1
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
