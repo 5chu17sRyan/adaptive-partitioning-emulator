@@ -16,7 +16,7 @@ Find the CV estimate of GP prediction error over R1: e1.
 Set overall design size n = n0 and number of regions K = 1.
   designSize <- numInputs
   numRegions <- 1
-While(designSize < maxDesignSize) do
+WHILE(designSize < maxDesignSize) DO
   Find region Rk* with the largest prediction error: k* = argmax[k=1,...,numRegions] (errorRK).
     maxErrorRegionIndex <- argmax(errors)
   Find the number of points that currently lie in Rk* : n*.
@@ -26,4 +26,17 @@ While(designSize < maxDesignSize) do
     Create a new LHS
       newLHS <- minimaxLHS(2*designsize - numPointsRk*, dimensions)
     Scale the LHS to be in the region Rk*
-    scaledx1 <- newLHS[,1]
+    scaledx1 <- newLHS[,1]*regionWidth + regionLeftBound
+    scaledx2 <- newLHS[1,]*regionHeight + regionLowerBound
+    newInputs <- c(scaledx1, scaledx2)
+  Evaluate the new responses at this new LHD : y(new)
+    newOutputs <- cornerPeak(newInputs)
+  Add the new points to the overall design : X <-{X, x(new)}
+    Create a (2*designsize - numPointsRk*) x 1 vector called "newRegions" with the value k before adding the points to the overall design
+    inputs <- c(inputs, newInputs)
+    regions <- c(regions, newRegions)
+  Add the new responses to the overall response set: y <- {y, y(new)}.
+    outputs <- c(outputs, newOutputs)
+  IN Rk*:
+    Choose dimension for splitting: j* (see Algorithm 2).
+    Denote the mid-point of xj* in this region by ~xj*k*.
