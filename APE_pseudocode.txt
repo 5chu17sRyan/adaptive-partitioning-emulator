@@ -1,0 +1,29 @@
+Initialize the design to be a random n0 x d LHD
+  inputs <- minimaxLHD(numInputs,dimensions)
+Evaluate the responses at this design: y = {f(x(1)), ... , f(x(n0)}.
+  outputs <- cornerPeak(inputs)
+    Implementation of cornerPeak function already complete
+Define region R1 as the entire domain [0, 1]^d.
+  Create a n0 x 1 vector "regions". Each row corresponds to a design point and its value to the region it's located in (1,k). Initialize the vector to only contain the value 1.
+Find the CV estimate of GP prediction error over R1: e1.
+  Subset inputs and outputs to be from R1
+  errorR1 <- LOOCV(inputsR1, outputsR2)
+    Instantiate CV sum to be 0
+    Loop for i = 1 to number of inputsR1.
+      Remove inputsR1[i,] and outputsR1[i] from inputsR1 and outputsR1 respectively. Create GP for the new R1. Predict yi from xi using GP. Calculate the squared error and add it to the CV sum
+    Divide the CV sum by the number of inputsR1.
+  Make a vector "regionErrors" to store errorR1 and all subsequent errorRK
+Set overall design size n = n0 and number of regions K = 1.
+  designSize <- numInputs
+  numRegions <- 1
+While(designSize < maxDesignSize) do
+  Find region Rk* with the largest prediction error: k* = argmax[k=1,...,numRegions] (errorRK).
+    maxErrorRegionIndex <- argmax(errors)
+  Find the number of points that currently lie in Rk* : n*.
+    outputsRk* <- outputs[regions == maxErrorRegionIndex]
+    numPointsRk* <- length(outputsRk*)
+  Generate a new random (2n0 - n*) x d LHD within Rk : X(new).
+    Create a new LHS
+      newLHS <- minimaxLHS(2*designsize - numPointsRk*, dimensions)
+    Scale the LHS to be in the region Rk*
+    scaledx1 <- newLHS[,1]
