@@ -5,6 +5,7 @@ Evaluate the responses at this design: y = {f(x(1)), ... , f(x(n0)}.
     Implementation of cornerPeak function already complete
 Define region R1 as the entire domain [0, 1]^d.
   Create a n0 x 1 vector "regions". Each row corresponds to a design point and its value to the region it's located in (1,k). Initialize the vector to only contain the value 1.
+  Create a dataframe for points. Includes inputs and outputs and which region they are in.
 Find the CV estimate of GP prediction error over R1: e1.
   Subset inputs and outputs to be from R1
   errorR1 <- LOOCV(inputsR1, outputsR2)
@@ -16,6 +17,8 @@ Find the CV estimate of GP prediction error over R1: e1.
 Set overall design size n = n0 and number of regions K = 1.
   designSize <- numInputs
   numRegions <- 1
+Make a vector for the upper bound of regions for all dimensions and a vector for the lower bounds of regions for all dimensions.
+Make a data-frame for the regions. Includes upper and lower bound, error, and GP.
 WHILE(designSize < maxDesignSize) DO
   Find region Rk* with the largest prediction error: k* = argmax[k=1,...,numRegions] (errorRK).
     maxErrorRegionIndex <- argmax(errors)
@@ -40,3 +43,22 @@ WHILE(designSize < maxDesignSize) DO
   IN Rk*:
     Choose dimension for splitting: j* (see Algorithm 2).
     Denote the mid-point of xj* in this region by ~xj*k*.
+      Average the upperbound of the jth dimension of the region and the lowerbound to find the mid-point
+    Split at ~xj*k* , forming two new regions, R(new)K and R(new)K+1
+      Change the bounds of the first region (R(new)K)
+      Create a new region RK+1
+      Update design points to reflect their new regions.
+  FOR l in K : K+1 DO
+    Train a GP using the data in R(new)l.
+      Subset design points to be only from region l
+      Create a GP for region l
+      Update regionl GP
+    Find the CV estimate of GP prediction error in Rl. Denote by error1.
+      errorl <- LOOCV(inputsl, outputsl)
+      Update regionl error
+  END FOR
+  Update the total number of regions : K <- K+1
+    numRegions <- numRegions + 1
+  Update the overall design size: n <- n + (2n0-n*)
+    designSize <- designsize + (2*designsize - numPointsRk*)
+END WHILE
