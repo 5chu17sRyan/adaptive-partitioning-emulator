@@ -38,6 +38,5 @@ cornerPeak <- function(inputs)
       break
     }
   }
-  transposedOutput <- t(outputs)
-  return(transposedOutput)
+  return(outputs)
 }
