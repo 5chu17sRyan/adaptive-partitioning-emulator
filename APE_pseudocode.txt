@@ -1,3 +1,5 @@
+ALGORITHM 1: APE algorithm for GP Regression
+
 Initialize the design to be a random n0 x d LHD
   inputs <- minimaxLHD(numInputs,dimensions)
 Evaluate the responses at this design: y = {f(x(1)), ... , f(x(n0)}.
@@ -18,7 +20,7 @@ Set overall design size n = n0 and number of regions K = 1.
   designSize <- numInputs
   numRegions <- 1
 Make a vector for the upper bound of regions for all dimensions and a vector for the lower bounds of regions for all dimensions.
-Make a data-frame for the regions. Includes upper and lower bound, error, and GP.
+Make a data-frame for the regions. Includes upper and lower bound, midpoint, error, and GP.
 WHILE(designSize < maxDesignSize) DO
   Find region Rk* with the largest prediction error: k* = argmax[k=1,...,numRegions] (errorRK).
     maxErrorRegionIndex <- argmax(errors)
@@ -62,3 +64,21 @@ WHILE(designSize < maxDesignSize) DO
   Update the overall design size: n <- n + (2n0-n*)
     designSize <- designsize + (2*designsize - numPointsRk*)
 END WHILE
+
+
+ALGORITHM 2: Choosing the splitting dimension, within a region Rk
+
+Create vector of the ratio of within region variance to between region variance for all possible dimension splits
+FOR dimension j in 1 : d DO
+  Propose a split in dimension j.
+  Denote the mid-point of xj in the region Rk by ~xj;k.
+  Split at ~xj;k , forming two new hypothetical sub-regions.
+  FOR hypothetical sub-region l in 1:2 DO
+    Find the mean of the responses within sub-region
+    Find the variance of the responses within sub-region
+  END FOR
+    Calculate the variance of the means: Vbetween
+    Calculate the mean of the variance: Vwithin
+END FOR
+Choose the dimension for splitting
+  splittingDimension <- argmin(vBetweenTovWithin)
