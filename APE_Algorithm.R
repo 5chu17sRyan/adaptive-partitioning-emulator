@@ -4,36 +4,30 @@ library(ramify)
 
 ## 1D Example 1
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
+
 
 numInputs <- 85
 dimensions <- 2
 
 set.seed(seed = NULL)
 x <- maximinLHS(numInputs, dimensions)
-y <- cornerPeak(inputs)
+
 initialRegion <- NULL
-for (i in outputs) 
+for (i in x) 
 {
   initialRegion <- c(initialRegion, 1)
 }
 
-initialRegion
-
 points <- data.frame(
   regions = initialRegion,
-  outputs = y,
+  outputs = cornerPeak(x),
   inputs = x
 )
 
-print(points)
+initialLowerBounds <- rep(0,dimensions)
+initialUpperBounds <- rep(1,dimensions)
 
-initialLowerBounds <- NULL
-initialUpperBounds <- NULL
-for (i in dimensions)
-{
-  initialLowerBounds <- c(initialLowerBounds, 0)
-  initialUpperBounds <- c(initialUpperBounds, 1)
-}
 
 regions <- data.frame(
   regionID = 1,
@@ -41,9 +35,20 @@ regions <- data.frame(
   rUpperBounds = matrix(initialUpperBounds, 1, dimensions)
 )
 
+#Subset points to be from region 1.
+regionOne <- regions[regions$regionID == 1,]
+
+#subsettedPoints = points
+#R1_UpperBound <- regionOne$rUpperBounds.1
+#subsettedPoints = points[points$inputs.1 < R1_UpperBound & points$inputs.2 <regionOne$rUpperBounds.2,]
+#subsettedPoints
+
 startInputIndex = 3
 endInputIndex = 2+dimensions
 outputIndex = 2
 
-GPmodel <- GP_fit(points[,startInputIndex:endInputIndex], points[,outputIndex])
-print(GPmodel)
+#Calculate GP for R1
+GPmodelR1 <- GP_fit(points[,startInputIndex:endInputIndex], points[,outputIndex])
+
+#Calculate the CV estimate of GP prediction error over R1
+errorR1 <- LOOCV(points)

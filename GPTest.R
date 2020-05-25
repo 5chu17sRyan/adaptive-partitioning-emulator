@@ -9,11 +9,47 @@ numInputs <- 85
 dimensions <- 2
 
 set.seed(seed = NULL)
-inputs <- maximinLHS(numInputs, dimensions)
-inputs
-outputs <- cornerPeak(inputs)
-outputs
+x <- maximinLHS(numInputs, dimensions)
 
-GPmodel <- GP_fit(inputs, outputs)
+initialRegion <- NULL
+for (i in x) 
+{
+  initialRegion <- c(initialRegion, 1)
+}
+
+points <- data.frame(
+  regions = initialRegion,
+  outputs = cornerPeak(x),
+  inputs = x
+)
+
+initialLowerBounds <- rep(0,dimensions)
+initialUpperBounds <- rep(1,dimensions)
+regions <- data.frame(
+  regionID = 1,
+  rLowerBounds = matrix(initialLowerBounds, 1, dimensions),
+  rUpperBounds = matrix(initialUpperBounds, 1, dimensions)
+)
+
+startInputIndex = 3
+endInputIndex = 2+dimensions
+outputIndex = 2
+
+GPmodel <- GP_fit(points[,startInputIndex:endInputIndex], points[,outputIndex])
 print(GPmodel)
-plot(GPmodel, resolution = 100, line_type = c(6,2), pch = 5)
+
+#Remove point
+i <- 1
+removedPoint <- points[i,]
+remainingPoints <- points[-c(i),]
+remainingPoints
+
+#Create a GP for the new set
+startInputIndex = 3
+endInputIndex = 2+dimensions
+outputIndex = 2
+GPmodel <- GP_fit(remainingPoints[,startInputIndex:endInputIndex], remainingPoints[,outputIndex])
+
+#Predict y_i from x_i using the GP
+prediction <- predict(GPmodel, removedPoint[,startInputIndex:endInputIndex])
+prediction$MSE
