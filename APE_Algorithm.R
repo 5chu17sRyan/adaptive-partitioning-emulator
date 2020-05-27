@@ -76,7 +76,11 @@ while(designSize < maxDesignSize){
   #Evaluate the new responses at this new LHD : y(new)
   newOutputs <- cornerPeak(newInputs)
   
+<<<<<<< HEAD
   #Add the new points to the overall design
+=======
+  #Add the new points to the overall design : X <-{X, x(new)}
+>>>>>>> 10a52a5e229da6b5bfd16558ffaa17bb8c3e903a
   newPoints <- data.frame(regions = newPointsRegion, outputs = newOutputs, inputs = newInputs)
   points <- rbind(points, newPoints)
   
