@@ -24,7 +24,6 @@ points <- data.frame(
 initialLowerBounds <- rep(0,dimensions)
 initialUpperBounds <- rep(1,dimensions)
 
-
 regions <- data.frame(
   regionID = 1,
   rLowerBounds = matrix(initialLowerBounds, 1, dimensions),
@@ -54,34 +53,70 @@ while(designSize < maxDesignSize){
   maxErrorRegionIndex <- which.max(regions$errors) # k*
   maxErrorRegion <- regions[regions$regionID == maxErrorRegionIndex] # Rk*
   maxErrorRegion
-  
+
   #Find the number of points that currently lie in Rk*
   pointsRk <- points[points$regions == maxErrorRegionIndex,]
+  points
   numPointsRk <- nrow(pointsRk) # n*
-  
+  numPointsRk
+  designSize
+
   #Generate a new random (2n0 - n*) x d LHD within Rk
-  newInputs <- maximinLHS(2*designSize-numPointsRk, dimensions)
+  set.seed(seed = NULL)
+  newInputs <- maximinLHS((2*designSize)-numPointsRk, dimensions)
   newInputs
+  
   #Scale to be within the lower an upper bounds of Rk
   i <- 1
-  while(i < dimensions){
+  while(i <= dimensions){
     upperBound = maxErrorRegion[,dimensions+1+i]
     lowerBound = maxErrorRegion[,1+i]
     newInputs[,i] = newInputs[,i]*(upperBound-lowerBound) + lowerBound
     i = i + 1
   }
-  
+
   newPointsRegion <- rep(maxErrorRegionIndex,numPointsRk)
-  
+
   #Evaluate the new responses at this new LHD : y(new)
   newOutputs <- cornerPeak(newInputs)
-  
-<<<<<<< HEAD
+
   #Add the new points to the overall design
-=======
-  #Add the new points to the overall design : X <-{X, x(new)}
->>>>>>> 10a52a5e229da6b5bfd16558ffaa17bb8c3e903a
   newPoints <- data.frame(regions = newPointsRegion, outputs = newOutputs, inputs = newInputs)
   points <- rbind(points, newPoints)
-  
+  points
+  #Choose dimension for splitting, j*
+  #Create vector of within region var to between region var
+  varWithinToBetween <- NULL
+  j <- 1
+  while(j <= dimensions){
+    #Get the midpoint of Rk in the jth dimension
+    upperBound = maxErrorRegion[,dimensions+1+j]
+    lowerBound = maxErrorRegion[,1+j]
+    jMidpoint = (upperBound+lowerBound)/2
+    
+    #Split at the midpoint forming two hypothetical subregions
+    hypReg1Pts <- subset(points, points[,j+2] <= jMidpoint)
+    hypReg2Pts <- subset(points, points[,j+2] > jMidpoint)
+    
+    #Find the mean of the responses within sub-region
+    hypReg1Mean <- mean(hypReg1Pts[,2])
+    hypReg2Mean <- mean(hypReg1Pts[,2])
+    means <- c(hypReg1Mean, hypReg2Mean)
+    means
+    
+    #Find the variance of the responses within sub-region
+    hypReg1Variance <- var(hypReg1Pts[,2])
+    hypReg2Variance <- var(hypReg2Pts[,2])
+    variances <- c(hypReg1Variance, hypReg2Variance)
+    
+    #Calculate the variance of the means
+    varBetween <- var(means)
+    varBetween
+    
+    #Calculate the mean of the variances
+    varWithin <- mean(variances)
+    varWithin
+    
+    j = j + 1
+  }
 }
