@@ -1,47 +1,47 @@
 ALGORITHM 1: APE algorithm for GP Regression
 
-Initialize the design to be a random n0 x d LHD
-  inputs <- minimaxLHD(numInputs,dimensions)
-Evaluate the responses at this design: y = {f(x(1)), ... , f(x(n0)}.
-  outputs <- cornerPeak(inputs)
-    Implementation of cornerPeak function already complete
-Define region R1 as the entire domain [0, 1]^d.
-  Create a n0 x 1 vector "regions". Each row corresponds to a design point and its value to the region it's located in (1,k). Initialize the vector to only contain the value 1.
-  Create a dataframe for points. Includes inputs and outputs and which region they are in.
-Find the CV estimate of GP prediction error over R1: e1.
-  Subset inputs and outputs to be from R1
-  errorR1 <- LOOCV(inputsR1, outputsR2)
-    Instantiate CV sum to be 0
-    Loop for i = 1 to number of inputsR1.
-      Remove inputsR1[i,] and outputsR1[i] from inputsR1 and outputsR1 respectively. Create GP for the new R1. Predict yi from xi using GP. Calculate the squared error and add it to the CV sum
-    Divide the CV sum by the number of inputsR1.
-  Make a vector "regionErrors" to store errorR1 and all subsequent errorRK
-Set overall design size n = n0 and number of regions K = 1.
+*Initialize the design to be a random n0 x d LHD
+  *inputs <- minimaxLHD(numInputs,dimensions)
+*Evaluate the responses at this design: y = {f(x(1)), ... , f(x(n0)}.
+  *outputs <- cornerPeak(inputs)
+    *Implementation of cornerPeak function already complete
+*Define region R1 as the entire domain [0, 1]^d.
+  *Create a n0 x 1 vector "regions". Each row corresponds to a design point and its value to the region it's located in (1,k). Initialize the vector to only contain the value 1.
+  *Create a dataframe for points. Includes inputs and outputs and which region they are in.
+*Find the CV estimate of GP prediction error over R1: e1.
+  *Subset inputs and outputs to be from R1
+  *errorR1 <- LOOCV(inputsR1, outputsR2)
+    *Instantiate CV sum to be 0
+    *Loop for i = 1 to number of inputsR1.
+      *Remove inputsR1[i,] and outputsR1[i] from inputsR1 and outputsR1 respectively. Create GP for the new R1. Predict yi from xi using GP. Calculate the squared error and add it to the CV sum
+    *Divide the CV sum by the number of inputsR1.
+  *Make a vector "regionErrors" to store errorR1 and all subsequent errorRK
+*Set overall design size n = n0 and number of regions K = 1.
   designSize <- numInputs
   numRegions <- 1
-Make a vector for the upper bound of regions for all dimensions and a vector for the lower bounds of regions for all dimensions.
+*Make a vector for the upper bound of regions for all dimensions and a vector for the lower bounds of regions for all dimensions.
 Make a data-frame for the regions. Includes upper and lower bound, midpoint, error, and GP.
 WHILE(designSize < maxDesignSize) DO
-  Find region Rk* with the largest prediction error: k* = argmax[k=1,...,numRegions] (errorRK).
-    maxErrorRegionIndex <- argmax(errors)
-  Find the number of points that currently lie in Rk* : n*.
-    outputsRk* <- outputs[regions == maxErrorRegionIndex]
-    numPointsRk* <- length(outputsRk*)
-  Generate a new random (2n0 - n*) x d LHD within Rk : X(new).
-    Create a new LHS
-      newLHS <- minimaxLHS(2*designsize - numPointsRk*, dimensions)
-    Scale the LHS to be in the region Rk*
-    scaledx1 <- newLHS[,1]*regionWidth + regionLeftBound
-    scaledx2 <- newLHS[1,]*regionHeight + regionLowerBound
-    newInputs <- c(scaledx1, scaledx2)
-  Evaluate the new responses at this new LHD : y(new)
-    newOutputs <- cornerPeak(newInputs)
-  Add the new points to the overall design : X <-{X, x(new)}
+  *Find region Rk* with the largest prediction error: k* = argmax[k=1,...,numRegions] (errorRK).
+    *maxErrorRegionIndex <- argmax(errors)
+  *Find the number of points that currently lie in Rk* : n*.
+    *outputsRk* <- outputs[regions == maxErrorRegionIndex]
+    *numPointsRk* <- length(outputsRk*)
+  *Generate a new random (2n0 - n*) x d LHD within Rk : X(new).
+    *Create a new LHS
+      *newLHS <- minimaxLHS(2*designsize - numPointsRk*, dimensions)
+    *Scale the LHS to be in the region Rk*
+    *scaledx1 <- newLHS[,1]*regionWidth + regionLeftBound
+    *scaledx2 <- newLHS[1,]*regionHeight + regionLowerBound
+    *newInputs <- c(scaledx1, scaledx2)
+  *Evaluate the new responses at this new LHD : y(new)
+    *newOutputs <- cornerPeak(newInputs)
+  *Add the new points to the overall design : X <-{X, x(new)}
     Create a (2*designsize - numPointsRk*) x 1 vector called "newRegions" with the value k before adding the points to the overall design
     inputs <- c(inputs, newInputs)
     regions <- c(regions, newRegions)
-  Add the new responses to the overall response set: y <- {y, y(new)}.
-    outputs <- c(outputs, newOutputs)
+  *Add the new responses to the overall response set: y <- {y, y(new)}.
+    *outputs <- c(outputs, newOutputs)
   IN Rk*:
     Choose dimension for splitting: j* (see Algorithm 2).
     Denote the mid-point of xj* in this region by ~xj*k*.
