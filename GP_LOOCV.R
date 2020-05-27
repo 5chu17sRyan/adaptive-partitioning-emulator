@@ -2,8 +2,8 @@ GP_LOOCV <- function(points){
   #Instantiate CV sum to be 0
   sumCV <- 0
   numPoints <- nrow(points)
-  i <- 1
   
+  i <- 1
   #Loop for i = 1 to number of pointsR1
   repeat{
     #Remove the ith point from our set of points
@@ -23,14 +23,13 @@ GP_LOOCV <- function(points){
     sumCV <- sumCV + prediction$MSE
     
     #Add the removed point back into our set
-    points <- c(points, removedPoint)
     
     i = i + 1
     if(i > numPoints){
       break
     }
   }
-  
+
   #Divde sum by number of points
   LOOCV <- sumCV / numPoints
   return(LOOCV)

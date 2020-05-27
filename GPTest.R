@@ -5,17 +5,14 @@ library(ramify)
 ## 1D Example 1
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
 
-numInputs <- 85
+numInputs <- 20
 dimensions <- 2
 
 set.seed(seed = NULL)
 x <- maximinLHS(numInputs, dimensions)
+x
 
-initialRegion <- NULL
-for (i in x) 
-{
-  initialRegion <- c(initialRegion, 1)
-}
+initialRegion <- rep(1,numInputs)
 
 points <- data.frame(
   regions = initialRegion,
@@ -38,18 +35,38 @@ outputIndex = 2
 GPmodel <- GP_fit(points[,startInputIndex:endInputIndex], points[,outputIndex])
 print(GPmodel)
 
-#Remove point
+#Instantiate CV sum to be 0
+sumCV <- 0
+numPoints <- nrow(points)
+
 i <- 1
-removedPoint <- points[i,]
-remainingPoints <- points[-c(i),]
-remainingPoints
 
-#Create a GP for the new set
-startInputIndex = 3
-endInputIndex = 2+dimensions
-outputIndex = 2
-GPmodel <- GP_fit(remainingPoints[,startInputIndex:endInputIndex], remainingPoints[,outputIndex])
+#Loop for i = 1 to number of pointsR1
+repeat{
+  #Remove the ith point from our set of points
+  removedPoint <- points[i,]
+  remainingPoints <- points[-c(i),]
+  
+  #Create a GP for the new set
+  startInputIndex = 3
+  endInputIndex = 2+dimensions
+  outputIndex = 2
+  GPmodel <- GP_fit(remainingPoints[,startInputIndex:endInputIndex], remainingPoints[,outputIndex])
+  
+  #Predict y_i from x_i using the GP
+  prediction <- predict(GPmodel, removedPoint[,startInputIndex:endInputIndex])
+  
+  #Add MSE to our CV sum
+  sumCV <- sumCV + prediction$MSE
+  
+  #Add the removed point back into our set
+  
+  i = i + 1
+  if(i > numPoints){
+    break
+  }
+}
+sumCV
+#Divde sum by number of points
+LOOCV <- sumCV / numPoints
 
-#Predict y_i from x_i using the GP
-prediction <- predict(GPmodel, removedPoint[,startInputIndex:endInputIndex])
-prediction$MSE

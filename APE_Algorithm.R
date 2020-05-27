@@ -51,4 +51,12 @@ outputIndex = 2
 GPmodelR1 <- GP_fit(points[,startInputIndex:endInputIndex], points[,outputIndex])
 
 #Calculate the CV estimate of GP prediction error over R1
-errorR1 <- LOOCV(points)
+errorR1 <- GP_LOOCV(points)
+regions['errors'] <- errorR1
+regions
+
+#Set overall design size to be number of inputs
+designSize <- numInputs
+
+#Set number of regions to be 1
+numRegions <- 1
