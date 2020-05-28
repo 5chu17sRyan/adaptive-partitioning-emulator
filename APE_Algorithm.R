@@ -131,7 +131,16 @@ while(designSize < maxDesignSize){
   upperBound <- splittingDimensionIndex + 1 + dimensions
   regions[,upperBound][regions$regionID == maxErrorRegionIndex] <- splittingMidpoint
   
-  
+  #Create a new region
+  newRegion <- data.frame(
+    regionID = maxErrorRegionIndex + 1, 
+    maxErrorRegion[1,2:(dimensions+1)], 
+    maxErrorRegion[1,(dimensions+2):(2*dimensions+1)],
+    errors = 0
+    )
+
+  regions <- rbind(regions, newRegion)
+  regions[,lowerBound][regions$regionID == (maxErrorRegionIndex+1)] <- splittingMidpoint
   
 }
 
