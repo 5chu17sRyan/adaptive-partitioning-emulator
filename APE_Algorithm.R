@@ -30,12 +30,11 @@ regions <- data.frame(
   rUpperBounds = matrix(initialUpperBounds, 1, dimensions)
 )
 
+regions[,4:5]-regions[,2:3]
+
 startInputIndex = 3
 endInputIndex = 2+dimensions
 outputIndex = 2
-
-#Calculate GP for R1
-GPmodelR1 <- GP_fit(points[,startInputIndex:endInputIndex], points[,outputIndex])
 
 #Calculate the CV estimate of GP prediction error over R1
 errorR1 <- GP_LOOCV(points)
@@ -52,14 +51,10 @@ while(designSize < maxDesignSize){
   #Find the region with the largest prediction error
   maxErrorRegionIndex <- which.max(regions$errors) # k*
   maxErrorRegion <- regions[regions$regionID == maxErrorRegionIndex] # Rk*
-  maxErrorRegion
 
   #Find the number of points that currently lie in Rk*
   pointsRk <- points[points$regions == maxErrorRegionIndex,]
-  points
   numPointsRk <- nrow(pointsRk) # n*
-  numPointsRk
-  designSize
 
   #Generate a new random (2n0 - n*) x d LHD within Rk
   set.seed(seed = NULL)
@@ -83,7 +78,7 @@ while(designSize < maxDesignSize){
   #Add the new points to the overall design
   newPoints <- data.frame(regions = newPointsRegion, outputs = newOutputs, inputs = newInputs)
   points <- rbind(points, newPoints)
-  points
+  
   #Choose dimension for splitting, j*
   #Create vector of within region var to between region var
   varWithinToBetween <- NULL
@@ -100,9 +95,8 @@ while(designSize < maxDesignSize){
     
     #Find the mean of the responses within sub-region
     hypReg1Mean <- mean(hypReg1Pts[,2])
-    hypReg2Mean <- mean(hypReg1Pts[,2])
+    hypReg2Mean <- mean(hypReg2Pts[,2])
     means <- c(hypReg1Mean, hypReg2Mean)
-    means
     
     #Find the variance of the responses within sub-region
     hypReg1Variance <- var(hypReg1Pts[,2])
@@ -111,12 +105,19 @@ while(designSize < maxDesignSize){
     
     #Calculate the variance of the means
     varBetween <- var(means)
-    varBetween
     
     #Calculate the mean of the variances
     varWithin <- mean(variances)
-    varWithin
+
+    #Store the ratio of the variance within region to variance between region
+    varWithinToBetween <- c(varWithinToBetween, varWithin/varBetween)
     
     j = j + 1
   }
+  
+  #Find the dimension with the largest ration of varWithin to varBetween
+  splittingDimensionIndex <- which.max(varWithinToBetween)
+  
 }
+
+
