@@ -59,7 +59,6 @@ while(designSize < maxDesignSize){
   #Generate a new random (2n0 - n*) x d LHD within Rk
   set.seed(seed = NULL)
   newInputs <- maximinLHS((2*designSize)-numPointsRk, dimensions)
-  newInputs
   
   #Scale to be within the lower an upper bounds of Rk
   i <- 1
@@ -115,8 +114,17 @@ while(designSize < maxDesignSize){
     j = j + 1
   }
   
-  #Find the dimension with the largest ration of varWithin to varBetween
-  splittingDimensionIndex <- which.max(varWithinToBetween)
+  #Find the dimension with the largest ration of varWithin to varBetween 
+  splittingDimensionIndex <- which.max(varWithinToBetween) # j*
+  splittingDimensionIndex
+  
+  #Find the midpoint of the dimension j*
+  splittingDimension_UB = maxErrorRegion[ , dimensions + 1 + splittingDimensionIndex ]
+  splittingDimension_LB = maxErrorRegion[ , 1 + splittingDimensionIndex ]
+  splittingMidpoint = ( splittingDimension_UB + splittingDimension_LB ) / 2
+  
+  #Split the region at this midpoint
+  points$regions[points[,splittingDimensionIndex+2] > splittingMidpoint] <- points$regions[points[,splittingDimensionIndex+2] > splittingMidpoint] + 1
   
 }
 
