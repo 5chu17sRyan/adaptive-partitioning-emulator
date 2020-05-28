@@ -138,12 +138,23 @@ while(designSize < maxDesignSize){
     maxErrorRegion[1,(dimensions+2):(2*dimensions+1)],
     errors = 0
     )
-<<<<<<< HEAD
-=======
-
->>>>>>> accd81f6e9ae6f71d6afabeffd8f86344b332337
   regions <- rbind(regions, newRegion)
   regions[,lowerBound][regions$regionID == (maxErrorRegionIndex+1)] <- splittingMidpoint
+  
+  #Find CV estimate for both new regions 
+  i <- 0
+  while(i < 2){
+    rKpoints <- points[points$regions == (maxErrorRegionIndex + i), ]
+    rKpoints
+    errorRK <- GP_LOOCV(rKpoints)
+    regions
+    regions[,(2+2*dimensions)][regions$regionID == (maxErrorRegionIndex + i)] <- errorRK
+    regions
+    
+    i <- i + 1
+  }
+  
+  
   
 }
 
