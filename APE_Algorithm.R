@@ -126,6 +126,13 @@ while(designSize < maxDesignSize){
   #Split the region at this midpoint
   points$regions[points[,splittingDimensionIndex+2] > splittingMidpoint] <- points$regions[points[,splittingDimensionIndex+2] > splittingMidpoint] + 1
   
+  #Change the bounds of the original region
+  lowerBound <- splittingDimensionIndex + 1
+  upperBound <- splittingDimensionIndex + 1 + dimensions
+  regions[,upperBound][regions$regionID == maxErrorRegionIndex] <- splittingMidpoint
+  
+  
+  
 }
 
 
