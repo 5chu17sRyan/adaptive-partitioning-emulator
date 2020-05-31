@@ -43,19 +43,19 @@ WHILE(designSize < maxDesignSize) DO
   *Add the new responses to the overall response set: y <- {y, y(new)}.
     *outputs <- c(outputs, newOutputs)
   IN Rk*:
-    Choose dimension for splitting: j* (see Algorithm 2).
-    Denote the mid-point of xj* in this region by ~xj*k*.
-      Average the upperbound of the jth dimension of the region and the lowerbound to find the mid-point
-    Split at ~xj*k* , forming two new regions, R(new)K and R(new)K+1
-      Change the bounds of the first region (R(new)K)
-      Create a new region RK+1
-      Update design points to reflect their new regions.
+    *Choose dimension for splitting: j* (see Algorithm 2).
+    *Denote the mid-point of xj* in this region by ~xj*k*.
+      *Average the upperbound of the jth dimension of the *region and the lowerbound to find the mid-point
+    *Split at ~xj*k* , forming two new regions, R(new)K and R(new)K+1
+      *Change the bounds of the first region (R(new)K)
+      *Create a new region RK+1
+      *Update design points to reflect their new regions.
   FOR l in K : K+1 DO
     Train a GP using the data in R(new)l.
       Subset design points to be only from region l
       Create a GP for region l
       Update regionl GP
-    Find the CV estimate of GP prediction error in Rl. Denote by error1.
+    *Find the CV estimate of GP prediction error in Rl. *Denote by error1.
       errorl <- LOOCV(inputsl, outputsl)
       Update regionl error
   END FOR
