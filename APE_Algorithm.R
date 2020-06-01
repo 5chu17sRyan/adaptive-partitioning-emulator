@@ -9,7 +9,8 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 #Set starting parameters
 maxDesignSize <- 200
 numInputs <- 20
-dimensions <- 2 # d
+#dimensions <- 4 # four dimensional Franke
+dimensions <- 2 # d # cornerPeak
 
 #Create initial LHD
 set.seed(seed = NULL)
@@ -21,7 +22,8 @@ initialRegion <- rep(1,numInputs)
 #Create a representation of all points
 points <- data.frame(
   regions = initialRegion,
-  outputs = cornerPeak(x),
+  #outputs = franke4D(x) # four dimensional Franke Function
+  outputs = cornerPeak(x), # two dimensional corner peak function
   inputs = x
 )
 
@@ -86,7 +88,8 @@ while(designSize < maxDesignSize){
   newPointsRegionID <- rep(maxErrorRegionIndex, numPointsRk)
 
   #Evaluate the new responses at this new LHD : y(new)
-  newOutputs <- cornerPeak(newInputs)
+  newOutputs <- franke4D(newInputs) # four dimensional Franke function
+  newOutputs <- cornerPeak(newInputs) # two dimensional corner peak function
 
   #Add the new points to the overall design
   newPoints <- data.frame(
