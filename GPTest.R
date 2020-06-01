@@ -10,7 +10,6 @@ dimensions <- 2
 
 set.seed(seed = NULL)
 x <- maximinLHS(numInputs, dimensions)
-x
 
 initialRegion <- rep(1,numInputs)
 
