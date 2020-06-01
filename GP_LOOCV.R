@@ -12,7 +12,7 @@ GP_LOOCV <- function(points){
     
     #Create a GP for the new set
     startInputIndex = 3
-    endInputIndex = 2+dimensions
+    endInputIndex = 2 + dimensions #ncol(points) - 2
     outputIndex = 2
     GPmodel <- GP_fit(remainingPoints[,startInputIndex:endInputIndex], remainingPoints[,outputIndex])
     
@@ -20,7 +20,7 @@ GP_LOOCV <- function(points){
     prediction <- predict(GPmodel, removedPoint[,startInputIndex:endInputIndex])
     
     #Add MSE to our CV sum
-    sumCV <- sumCV + prediction$MSE
+    sumCV <- sumCV + prediction$MSE # MSE is not the same as squared error
     
     #Add the removed point back into our set
     
