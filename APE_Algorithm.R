@@ -1,6 +1,5 @@
 library(GPfit)
 library(lhs)
-library(ramify)
 
 ## 1D Example 1
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
@@ -8,8 +7,8 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
 
 #Set starting parameters
-maxDesignSize <- 200
-numInputs <- 20
+maxDesignSize <- 20
+numInputs <- 10
 #dimensions <- 4 # four dimensional Franke
 dimensions <- 2 # d # cornerPeak
 
@@ -24,7 +23,7 @@ initialRegion <- rep(1,numInputs)
 points <- data.frame(
   regions = initialRegion,
   #outputs = franke4D(x) # four dimensional Franke Function
-  outputs = cornerPeak(x), # two dimensional corner peak function
+  outputs = cornerPeak(x), #corner peak function
   inputs = x
 )
 
@@ -61,12 +60,11 @@ numRegions <- 1
 
 while(designSize < maxDesignSize){
   #Find the region with the largest prediction error
-  #"maxErrorRegion <- findMaxError(regions)"
   maxErrorRegionIndex <- which.max(regions$errors) # k*
   maxErrorRegion <- regions[regions$regionID == maxErrorRegionIndex,] # Rk*
+  maxErrorRegionPts <- points[points$regions == maxErrorRegionIndex,]
   
   #Find the number of points that currently lie in Rk*
-  #"numPointsRk <- numPointsInRegion(points, regionIndex)"
   pointsRk <- points[points$regions == maxErrorRegionIndex,]
   numPointsRk <- nrow(pointsRk) # n*
 
@@ -102,19 +100,22 @@ while(designSize < maxDesignSize){
   #Make all of algorithm 2 into a function
   #Choose dimension for splitting, j*
   #Create vector of within region var to between region var
+  midpoints <- NULL
   varWithinToBetween <- NULL
   j <- 0
   while(j < dimensions){
     #Get the midpoint of Rk in the jth dimension
-    #"jMidpoint = <- getMidpoint(region, dimension)"
     #Store the hypothetical midpoints in a vector to retieve later
     upperBound = maxErrorRegion[maxErrorRegionIndex ,upperBoundStartIndex + j]
     lowerBound = maxErrorRegion[maxErrorRegionIndex ,lowerBoundStartIndex + j]
     jMidpoint = (upperBound+lowerBound)/2
+    midpoints <- c(midpoints, jMidpoint)
     
+    #Subset max error region points
     #Split at the midpoint forming two hypothetical subregions
-    hypReg1Pts <- subset(points, points[maxErrorRegionIndex ,inputStartIndex + j] <= jMidpoint)
-    hypReg2Pts <- subset(points, points[maxErrorRegionIndex ,inputStartIndex + j] > jMidpoint)
+    #Use maxErrorRegionPoints
+    hypReg1Pts <- subset(maxErrorRegionPts, maxErrorRegionPts[ ,inputStartIndex + j] <= jMidpoint)
+    hypReg2Pts <- subset(maxErrorRegionPts, maxErrorRegionPts[ ,inputStartIndex + j] > jMidpoint)
     
     #Find the mean of the responses within sub-regions
     hypReg1Responses <- hypReg1Pts[ ,outputStartIndex]
@@ -145,17 +146,11 @@ while(designSize < maxDesignSize){
   splittingDimensionIndex <- which.max(varWithinToBetween) # j*
   
   #Find the midpoint of the dimension j*
-  #"splittingMidpoint = <- getMidpoint(region, dimension)"
-  splittingDimension_UB = maxErrorRegion[ , (upperBoundStartIndex - 1) + splittingDimensionIndex ]
-  splittingDimension_LB = maxErrorRegion[ , (lowerBoundStartIndex - 1) + splittingDimensionIndex ]
-  splittingMidpoint = ( splittingDimension_UB + splittingDimension_LB ) / 2
+  splittingMidpoint = midpoints[splittingDimensionIndex]
   
-  
-  #ERROR HERE this looks at points in all regions not just Rk
   #Look at points where their region is equal to maxErrorRegionIndex
   newRegionIndex <- numRegions + 1
   splittingDimensionInput_Index <- (inputStartIndex - 1) + splittingDimensionIndex
-  maxErrorRegionPts <- points[points$regions == maxErrorRegionIndex,]
   pointsGreaterThanMidpoint <- maxErrorRegionPts[ , splittingDimensionInput_Index] > splittingMidpoint
   #Split the region at this midpoint
   points$regions[pointsGreaterThanMidpoint] <- newRegionIndex
@@ -167,7 +162,7 @@ while(designSize < maxDesignSize){
   
   #Create a new region
   newRegion <- data.frame(
-    regionID = maxErrorRegionIndex + 1, 
+    regionID = newRegionIndex, 
     maxErrorRegion[ 1, lowerBoundStartIndex:lowerBoundEndIndex], 
     maxErrorRegion[ 1, upperBoundStartIndex:upperBoundEndIndex],
     errors = NA
@@ -188,8 +183,7 @@ while(designSize < maxDesignSize){
   numRegions <- numRegions + 1
 
   #Update the overall design size
-  designSize <- designSize + (2*designSize - numPointsRk)
-
+  designSize <- dim(points)(1)
 }
 
 
