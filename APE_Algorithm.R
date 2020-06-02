@@ -75,6 +75,7 @@ while(designSize < maxDesignSize){
   
   #Scale to be within the lower an upper bounds of Rk
   #"scaledNewInputs <- scaleValues(newInputs, upperBounds, lowerBounds)"
+  #"scaledNewInputs <- scaleInputsToRegion(newInputs, maxErrorRegion)" 
   i <- 0
   while(i < dimensions){
     upperBound = maxErrorRegion[ ,upperBoundStartIndex + i]
@@ -100,6 +101,8 @@ while(designSize < maxDesignSize){
   #Make all of algorithm 2 into a function
   #Choose dimension for splitting, j*
   #Create vector of within region var to between region var
+  #splittingDimensionIndex <- chooseRegionSplit(midpoints, maxErrorRegion, maxErrorRegionPts, inputStartIndex, outputStartIndex)
+  #We can redefine maxErrorRegionPts, inputStartIndex, and outputStartIndex within the function 
   midpoints <- NULL
   varWithinToBetween <- NULL
   j <- 0
