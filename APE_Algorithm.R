@@ -5,6 +5,8 @@ library(lhs)
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
+
 
 #Set starting parameters
 maxDesignSize <- 20
@@ -175,11 +177,13 @@ while(designSize < maxDesignSize){
   
   #Find CV estimate for both new regions 
   rKpoints <- points[points$regions == maxErrorRegionIndex, ]
-  errorRK <- GP_LOOCV(rKpoints)
+  scaledPointsRK <- scaleValuesForGP(rKpoints)
+  errorRK <- GP_LOOCV(scaledPointsRK)
   regions[ ,errorIndex][regions$regionID == maxErrorRegionIndex] <- errorRK
   
   rK1points <- points[points$regions == newRegionIndex, ]
-  errorRK1 <- GP_LOOCV(rK1points)
+  scaledPointsRK1 <- scaleValuesForGP(rK1points) 
+  errorRK1 <- GP_LOOCV(scaledPointsRK1)
   regions[ ,errorIndex][regions$regionID == newRegionIndex] <- errorRK1
 
   #Update the total number of regions 
