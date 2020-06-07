@@ -249,9 +249,13 @@ while(i <= numRegions){
     currentPoint <- scaledTestPoints[currentPointIndex, ]
     prediction <- predict(GPmodel, currentPoint[ ,startInputIndex:endInputIndex])
     predictedOutput <- prediction$Y_hat
+    actualOutput <- currentPoint[ ,startOutputIndex]
     
     #Calculate squared error
+    squaredError <- (predictedOutput - actualOutput)^2
+    
     #Store squared error
+    squaredErrors <- c(squaredErrors, squaredError)
     
     currentPointIndex <- currentPointIndex + 1
   }
