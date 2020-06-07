@@ -213,6 +213,7 @@ testPoints <- data.frame(
 )
 
 #For each region
+squaredErrors <- NA
 currentRegionIndex <- 1
 while(i <= numRegions){
   #Scale up points in region to be from 0 to 1
@@ -242,9 +243,19 @@ while(i <= numRegions){
   scaledTestPoints <- scaleValuesForGP(testPointsSubset)
   
   #For each test point in region
-  #Predict output using GP model
-  #Calculate and squared error
-  #Store squared error
+  currentPointIndex <- 1
+  while(currentPointIndex <= numTestInputs){
+    #Predict output using GP model
+    currentPoint <- scaledTestPoints[currentPointIndex, ]
+    prediction <- predict(GPmodel, currentPoint[ ,startInputIndex:endInputIndex])
+    predictedOutput <- prediction$Y_hat
+    
+    #Calculate squared error
+    #Store squared error
+    
+    currentPointIndex <- currentPointIndex + 1
+  }
+
   currentRegionIndex <- currentRegionIndex + 1
 }
 
