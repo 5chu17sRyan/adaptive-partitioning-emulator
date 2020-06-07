@@ -257,12 +257,19 @@ while(i <= numRegions){
     #Store squared error
     squaredErrors <- c(squaredErrors, squaredError)
     
+    
     currentPointIndex <- currentPointIndex + 1
   }
 
+  
   currentRegionIndex <- currentRegionIndex + 1
 }
 
 #Calculate RMSE
+MSE <- sum(squaredErrors) / numTestInputs
+RMSE <- MSE^(1/2)
+
 #Calculate MASE
+maxSEIndex <- which.max(squaredErrors)
+MASE <- squaredErrors[maxSEIndex]
 
