@@ -18,9 +18,10 @@ GP_LOOCV <- function(points){
     
     #Predict y_i from x_i using the GP
     prediction <- predict(GPmodel, removedPoint[,startInputIndex:endInputIndex])
-    
-    #Add MSE to our CV sum
-    sumCV <- sumCV + prediction$MSE # MSE is not the same as squared error
+
+    #Add squaredError to our CV sum
+    squaredError <- (prediction$Y_hat - removedPoint[ , outputIndex])^2
+    sumCV <- sumCV + squaredError 
     
     #Add the removed point back into our set
     

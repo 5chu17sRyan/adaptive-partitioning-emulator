@@ -194,3 +194,59 @@ while(designSize < maxDesignSize){
 }
 
 
+########## Create and test model ##########
+
+## Create set of test points
+
+#Create LHD of inputs
+numTestInputs <- 1000
+testInputs <- maximinLHS(numTestInputs, dimensions)
+
+#Evaluate the inputs to get outputs
+#testOutputs <- franke4D(x) # four dimensional Franke Function
+testOutputs <- cornerPeak(testInputs)
+
+testPoints <- data.frame(
+  #regions = initialRegion,
+  outputs = testOutputs,
+  inputs = testInputs
+)
+
+#For each region
+currentRegionIndex <- 1
+while(i <= numRegions){
+  #Scale up points in region to be from 0 to 1
+  regionPoints <- points[points$regions == currentRegionIndex]
+  scaledPoints <- scaleValuesForGP(regionPoints)
+  
+  #Create GP model
+  inputEndIndex <- inputstartIndex + dimensions - 1
+  inputsGP <- scaledPoints[ , inputStartIndex:inputEndIndex]
+  outputsGP <- scaledPoints[, outputStartIndex]
+  GPmodel <- GP_fit(inputsGP, ouputsGP)
+  
+  #Subset test points to be just in this region
+  currentRegion <- region[region$regionID == currentRegionIndex]
+  testPointsSubset <- testPoints
+  currentDimensionIndex <- 1
+  while(currentDimensionIndex < dimensions){
+    upperBound <- currentRegion[ ,upperBoundStartIndex + currentDimensionIndex - 1]
+    lowerBound <- currentRegion[ ,lowerBoundStartIndex + currentDimensionIndex - 1]
+    testPointsSubset <- subset( testPointsSubset, testpointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] <= upperBound )
+    testPointsSubset <- subset( testPointsSubset, testpointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] > lowerBound )
+    
+    currentDimensionIndex <- currentDimensionIndex + 1
+  }
+
+  
+  #Scale up points to be from 0 to 1
+  #For each test point in region
+  #Predict output using GP model
+  #Calculate and squared error
+  #Store squared error
+  currentRegionIndex <- currentRegionIndex + 1
+}
+
+#Calculate RMSE
+#Calculate MASE
+
