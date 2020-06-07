@@ -238,8 +238,9 @@ while(i <= numRegions){
     currentDimensionIndex <- currentDimensionIndex + 1
   }
 
+  #Scale up test points to be from 0 to 1
+  scaledTestPoints <- scaleValuesForGP(testPointsSubset)
   
-  #Scale up points to be from 0 to 1
   #For each test point in region
   #Predict output using GP model
   #Calculate and squared error
