@@ -143,7 +143,7 @@ while(designSize < maxDesignSize){
 
     #Store the ratio of the variance within region to variance between region
     varWithinToBetween <- c(varWithinToBetween, varWithin/varBetween)
-    
+
     j = j + 1
   }
 
@@ -190,7 +190,7 @@ while(designSize < maxDesignSize){
   numRegions <- numRegions + 1
 
   #Update the overall design size
-  designSize <- dim(points)(1)
+  designSize <- designSize + (2*numInputs - numPointsRk)
 }
 
 
@@ -200,6 +200,7 @@ while(designSize < maxDesignSize){
 
 #Create LHD of inputs
 numTestInputs <- 1000
+set.seed(seed = NULL)
 testInputs <- maximinLHS(numTestInputs, dimensions)
 
 #Evaluate the inputs to get outputs
@@ -213,43 +214,46 @@ testPoints <- data.frame(
 )
 
 #For each region
-squaredErrors <- NA
+squaredErrors <- NULL
 currentRegionIndex <- 1
-while(i <= numRegions){
+while(currentRegionIndex <= numRegions){
   #Scale up points in region to be from 0 to 1
-  regionPoints <- points[points$regions == currentRegionIndex]
+  regionPoints <- points[points$regions == currentRegionIndex, ]
   scaledPoints <- scaleValuesForGP(regionPoints)
   
   #Create GP model
-  inputEndIndex <- inputstartIndex + dimensions - 1
+  inputEndIndex <- inputStartIndex + dimensions - 1
   inputsGP <- scaledPoints[ , inputStartIndex:inputEndIndex]
   outputsGP <- scaledPoints[, outputStartIndex]
-  GPmodel <- GP_fit(inputsGP, ouputsGP)
+  GPmodel <- GP_fit(inputsGP, outputsGP)
   
   #Subset test points to be just in this region
-  currentRegion <- region[region$regionID == currentRegionIndex]
+  currentRegion <- regions[regions$regionID == currentRegionIndex, ]
   testPointsSubset <- testPoints
   currentDimensionIndex <- 1
   while(currentDimensionIndex < dimensions){
     upperBound <- currentRegion[ ,upperBoundStartIndex + currentDimensionIndex - 1]
     lowerBound <- currentRegion[ ,lowerBoundStartIndex + currentDimensionIndex - 1]
-    testPointsSubset <- subset( testPointsSubset, testpointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] <= upperBound )
-    testPointsSubset <- subset( testPointsSubset, testpointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] > lowerBound )
+    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] <= upperBound )
+    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] > lowerBound )
     
     currentDimensionIndex <- currentDimensionIndex + 1
   }
 
   #Scale up test points to be from 0 to 1
   scaledTestPoints <- scaleValuesForGP(testPointsSubset)
+  numScaledTestPoints <- nrow(scaledTestPoints)
   
   #For each test point in region
   currentPointIndex <- 1
-  while(currentPointIndex <= numTestInputs){
+  while(currentPointIndex <= numScaledTestPoints){
     #Predict output using GP model
     currentPoint <- scaledTestPoints[currentPointIndex, ]
-    prediction <- predict(GPmodel, currentPoint[ ,startInputIndex:endInputIndex])
+    currentInputs <- currentPoint[ ,(inputStartIndex-1):(inputEndIndex-1)]
+    prediction <- predict(GPmodel, currentInputs)
+    
     predictedOutput <- prediction$Y_hat
-    actualOutput <- currentPoint[ ,startOutputIndex]
+    actualOutput <- currentPoint[ ,(outputStartIndex-1)]
     
     #Calculate squared error
     squaredError <- (predictedOutput - actualOutput)^2
@@ -257,11 +261,9 @@ while(i <= numRegions){
     #Store squared error
     squaredErrors <- c(squaredErrors, squaredError)
     
-    
     currentPointIndex <- currentPointIndex + 1
   }
 
-  
   currentRegionIndex <- currentRegionIndex + 1
 }
 
@@ -272,4 +274,3 @@ RMSE <- MSE^(1/2)
 #Calculate MASE
 maxSEIndex <- which.max(squaredErrors)
 MASE <- squaredErrors[maxSEIndex]
-

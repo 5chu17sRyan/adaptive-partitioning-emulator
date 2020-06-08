@@ -11,7 +11,7 @@ scaleValuesForGP <- function(points){
     maxValue <- copyOfPoints[maxValueIndex, dimensionIndex]
     
     minValueIndex <- which.min(dimensionPoints)
-    minValue <- copyOfPoints[minvalueIndex, dimensionIndex]
+    minValue <- copyOfPoints[minValueIndex, dimensionIndex]
     
     originalRange <- maxValue - minValue
     newRange <- 1
@@ -21,8 +21,10 @@ scaleValuesForGP <- function(points){
     j <- 1
     while(j <= numPoints){
       copyOfPoints[j, dimensionIndex] <- (copyOfPoints[j, dimensionIndex] - minValue) * (newRange / originalRange)
+      j = j + 1
     }
-
+    
+    i = i + 1
   }
   
   return(copyOfPoints)
