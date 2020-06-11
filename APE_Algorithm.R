@@ -9,8 +9,8 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 
 
 #Set starting parameters
-maxDesignSize <- 20
-numInputs <- 10
+maxDesignSize <- 64
+numInputs <- 8
 #dimensions <- 4 # four dimensional Franke
 dimensions <- 2 # d # cornerPeak
 
@@ -20,13 +20,17 @@ x <- maximinLHS(numInputs, dimensions)
 
 #Set the initial region of all inputs to be 1
 initialRegion <- rep(1,numInputs)
+iteration <- 0
+initialIteration <- rep(iteration, numInputs)
+initialIteration
 
 #Create a representation of all points
 points <- data.frame(
   regions = initialRegion,
   #outputs = franke4D(x) # four dimensional Franke Function
   outputs = cornerPeak(x), #corner peak function
-  inputs = x
+  inputs = x,
+  iterations = initialIteration
 )
 
 outputStartIndex <- 2
@@ -61,6 +65,8 @@ designSize <- numInputs # n0
 numRegions <- 1
 
 while(designSize < maxDesignSize){
+  iteration <- iteration + 1
+  
   #Find the region with the largest prediction error
   maxErrorRegionIndex <- which.max(regions$errors) # k*
   maxErrorRegion <- regions[regions$regionID == maxErrorRegionIndex,] # Rk*
@@ -91,12 +97,15 @@ while(designSize < maxDesignSize){
   #Evaluate the new responses at this new LHD : y(new)
   #newOutputs <- franke4D(newInputs) # four dimensional Franke function
   newOutputs <- cornerPeak(newInputs) # two dimensional corner peak function
-
+  
+  newIterations <- rep(iteration, numNewInputs)
+  
   #Add the new points to the overall design
   newPoints <- data.frame(
     regions = newPointsRegionID, 
     outputs = newOutputs, 
-    inputs = newInputs
+    inputs = newInputs,
+    iterations = newIterations
     )
   points <- rbind(points, newPoints)
   
@@ -111,20 +120,30 @@ while(designSize < maxDesignSize){
   while(j < dimensions){
     #Get the midpoint of Rk in the jth dimension
     #Store the hypothetical midpoints in a vector to retieve later
-    upperBound = maxErrorRegion[maxErrorRegionIndex ,upperBoundStartIndex + j]
-    lowerBound = maxErrorRegion[maxErrorRegionIndex ,lowerBoundStartIndex + j]
+    upperBound = maxErrorRegion[maxErrorRegion$regionID == maxErrorRegionIndex ,upperBoundStartIndex + j]
+    lowerBound = maxErrorRegion[maxErrorRegion$regionID == maxErrorRegionIndex ,lowerBoundStartIndex + j]
     jMidpoint = (upperBound+lowerBound)/2
+    # for some reason it looks like jMidpoints value was NA but when I ran this line again it had no problem its like it was skipped over.
     midpoints <- c(midpoints, jMidpoint)
+    upperBound
+    lowerBound
+    maxErrorRegion
+    maxErrorRegionIndex
+    jMidpoint
+    midpoints
     
     #Subset max error region points
     #Split at the midpoint forming two hypothetical subregions
     #Use maxErrorRegionPoints
     hypReg1Pts <- subset(maxErrorRegionPts, maxErrorRegionPts[ ,inputStartIndex + j] <= jMidpoint)
     hypReg2Pts <- subset(maxErrorRegionPts, maxErrorRegionPts[ ,inputStartIndex + j] > jMidpoint)
+    maxErrorRegionPts
+    jMidpoint
     
     #Find the mean of the responses within sub-regions
     hypReg1Responses <- hypReg1Pts[ ,outputStartIndex]
     hypReg2Responses <- hypReg2Pts[ ,outputStartIndex]
+    hypReg1Pts
     
     hypReg1Mean <- mean(hypReg1Responses)
     hypReg2Mean <- mean(hypReg2Responses)
@@ -134,22 +153,22 @@ while(designSize < maxDesignSize){
     hypReg1Variance <- var(hypReg1Responses)
     hypReg2Variance <- var(hypReg2Responses)
     variances <- c(hypReg1Variance, hypReg2Variance)
+    hypReg1Responses
     
     #Calculate the variance of the means
     varBetween <- var(means)
     
     #Calculate the mean of the variances
     varWithin <- mean(variances)
-
+    
     #Store the ratio of the variance within region to variance between region
     varWithinToBetween <- c(varWithinToBetween, varWithin/varBetween)
-
+    varWithinToBetween
     j = j + 1
   }
 
   #Find the dimension with the largest ration of varWithin to varBetween 
   splittingDimensionIndex <- which.max(varWithinToBetween) # j*
-  
   #Find the midpoint of the dimension j*
   splittingMidpoint = midpoints[splittingDimensionIndex]
   
@@ -174,6 +193,8 @@ while(designSize < maxDesignSize){
     )
   regions <- rbind(regions, newRegion)
   regions[ ,lowerBoundIndex][regions$regionID == newRegionIndex] <- splittingMidpoint
+  regions[,2]
+  lowerBoundIndex
   
   #Find CV estimate for both new regions 
   rKpoints <- points[points$regions == maxErrorRegionIndex, ]
@@ -190,9 +211,37 @@ while(designSize < maxDesignSize){
   numRegions <- numRegions + 1
 
   #Update the overall design size
-  designSize <- designSize + (2*numInputs - numPointsRk)
+  designSize <- nrow(points) #also it seems like it didn't run this it ended with 61 points but design size 51
+  print(designSize)
+}
+points
+designSize
+########## Plot input points ##########
+
+x1 <- points[ ,inputStartIndex]
+x2 <- points[ ,(inputStartIndex+1)]
+y <- points[ , outputStartIndex]
+
+color.gradient <- function(x, colors=c("light grey","dark blue"), colsteps=256) {
+  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
 }
 
+shapes <- as.character(points$iterations)
+
+plot(x = x1, 
+     y = x2, 
+     pch = shapes, 
+     col = color.gradient(y, colsteps=256)
+)
+
+#library(ggplot2)
+#ggplot(points,
+#       aes(x = inputs.1,
+#           y = inputs.2,
+#           color = outputs,
+#           shape = shapes
+#       )
+#) + geom_point(size = 2)
 
 ########## Create and test model ##########
 
