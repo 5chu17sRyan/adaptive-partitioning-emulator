@@ -1,19 +1,21 @@
 #Scales values to 0 to 1 to be used in a GP
 scaleValuesForGP <- function(dat){
-  m = sapply(dat[,3:(dimensions+2)], min)
-  M = sapply(dat[,3:(dimensions+2)], max)
-  r = M-m
+  minimumValues = sapply(dat[,3:(dimensions+2)], min)
+  maximumValues = sapply(dat[,3:(dimensions+2)], max)
+  ranges = maximumValues - minimumValues
   
-  sc.dat = dat
+  scaledData = dat
   for (i in 1:dimensions){
-    sc.dat[,2+i] = (sc.dat[,2+i]-m[i])/r[i]
+    dimensionIndex <- i + 2
+    scaledData[ , dimensionIndex] = (scaledData[ , dimensionIndex] - minimumValues[i]) / ranges[i]
   }
-  return(sc.dat)
+  
+  return(scaledData)
 }
 
-# scaleValuesForGP <- function(points){
-#   copyOfPoints <- points
-#   dimensions = ncol(copyOfPoints) - 3
+#I RAN BOTH FUNCTIONS AND GOT THE SAME VALUES
+# scaleValuesForGP <- function(dat){
+#   copyOfPoints <- dat
 #   i <- 1
 #   while(i <= dimensions){
 #     dimensionIndex <- i + 2
@@ -26,13 +28,14 @@ scaleValuesForGP <- function(dat){
 #     minValue <- copyOfPoints[minValueIndex, dimensionIndex]
 #     
 #     originalRange <- maxValue - minValue
-#     newRange <- 1
-#     newMin <- 0
 #     
 #     numPoints <- nrow(copyOfPoints)
 #     j <- 1
 #     while(j <= numPoints){
-#       copyOfPoints[j, dimensionIndex] <- (copyOfPoints[j, dimensionIndex] - minValue) * (newRange / originalRange)
+#       # scaled <- (original - oldMinimum) / oldRange
+#       # EXAMPLE: original = .5, oldminimum = .25, oldRange = .25
+#       # (0.5 - 0.25) / 0.25 = 1
+#       copyOfPoints[j, dimensionIndex] <- (copyOfPoints[j, dimensionIndex] - minValue) / originalRange
 #       j = j + 1
 #     }
 #     
@@ -42,6 +45,3 @@ scaleValuesForGP <- function(dat){
 #   return(copyOfPoints)
 # }
 # 
-# createLHD <- function(numInputs, dimensions, upperBounds, lowerBounds){
-#   
-# }

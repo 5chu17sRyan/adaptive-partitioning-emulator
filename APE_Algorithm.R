@@ -3,21 +3,14 @@ library(lhs)
 
 
 
-## 1D Example 1
-source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
-source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/GP_LOOCV.R")
-source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/AdditionalFunctions.R")
+#source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
+#source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/GP_LOOCV.R")
+#source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/AdditionalFunctions.R")
 
-rm(list=ls())
-source("/Users/leatherman1/Dropbox/ToDo/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
-source("/Users/leatherman1/Dropbox/ToDo/adaptive-partitioning-emulator-master/GP_LOOCV.R")
-source("/Users/leatherman1/Dropbox/ToDo/adaptive-partitioning-emulator-master/AdditionalFunctions.R")
-
-
-# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
-# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
-# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
-# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
 
 
 #Set starting parameters
@@ -137,25 +130,16 @@ while(designSize < maxDesignSize){
     jMidpoint = (upperBound+lowerBound)/2
     # for some reason it looks like jMidpoints value was NA but when I ran this line again it had no problem its like it was skipped over.
     midpoints <- c(midpoints, jMidpoint)
-    upperBound
-    lowerBound
-    maxErrorRegion
-    maxErrorRegionIndex
-    jMidpoint
-    midpoints
     
     #Subset max error region points
     #Split at the midpoint forming two hypothetical subregions
     #Use maxErrorRegionPoints
     hypReg1Pts <- subset(maxErrorRegionPts, maxErrorRegionPts[ ,inputStartIndex + j] <= jMidpoint)
     hypReg2Pts <- subset(maxErrorRegionPts, maxErrorRegionPts[ ,inputStartIndex + j] > jMidpoint)
-    maxErrorRegionPts
-    jMidpoint
     
     #Find the mean of the responses within sub-regions
     hypReg1Responses <- hypReg1Pts[ ,outputStartIndex]
     hypReg2Responses <- hypReg2Pts[ ,outputStartIndex]
-    hypReg1Pts
     
     hypReg1Mean <- mean(hypReg1Responses)
     hypReg2Mean <- mean(hypReg2Responses)
@@ -165,7 +149,6 @@ while(designSize < maxDesignSize){
     hypReg1Variance <- var(hypReg1Responses)
     hypReg2Variance <- var(hypReg2Responses)
     variances <- c(hypReg1Variance, hypReg2Variance)
-    hypReg1Responses
     
     #Calculate the variance of the means
     varBetween <- var(means)
@@ -175,7 +158,6 @@ while(designSize < maxDesignSize){
     
     #Store the ratio of the variance within region to variance between region
     varWithinToBetween <- c(varWithinToBetween, varWithin/varBetween)
-    varWithinToBetween
     j = j + 1
   }
   
@@ -205,8 +187,6 @@ while(designSize < maxDesignSize){
   )
   regions <- rbind(regions, newRegion)
   regions[regions$regionID == newRegionIndex,lowerBoundIndex] <- splittingMidpoint
-  regions[,2]
-  lowerBoundIndex
   
   #Find CV estimate for both new regions 
   rKpoints <- dat[dat$regions == maxErrorRegionIndex, ]
@@ -226,9 +206,6 @@ while(designSize < maxDesignSize){
   designSize <- nrow(dat) #also it seems like it didn't run this it ended with 61 points but design size 51
   print(designSize)
 }
-# dat
-# designSize
-regions
 
 ########## Plot input points ##########
 
@@ -252,7 +229,7 @@ plot(x = x1,
 ########## 
 
 #library(ggplot2)
-#ggplot(pts,
+#ggplot(dat,
 #       aes(x = inputs.1,
 #           y = inputs.2,
 #           color = outputs,
@@ -273,7 +250,7 @@ testInputs <- maximinLHS(numTestInputs, dimensions)
 #testOutputs <- franke4D(x) # four dimensional Franke Function
 testOutputs <- cornerPeak(testInputs)
 
-testPoints <- data.frame(
+testPoints <- data.frame( 
   #regions = initialRegion,
   outputs = testOutputs,
   inputs = testInputs
