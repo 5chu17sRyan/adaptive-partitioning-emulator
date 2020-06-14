@@ -1,11 +1,23 @@
 library(GPfit)
 library(lhs)
 
+
+
 ## 1D Example 1
-source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
-source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
-source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
-source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
+source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
+source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/GP_LOOCV.R")
+source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/AdditionalFunctions.R")
+
+rm(list=ls())
+source("/Users/leatherman1/Dropbox/ToDo/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
+source("/Users/leatherman1/Dropbox/ToDo/adaptive-partitioning-emulator-master/GP_LOOCV.R")
+source("/Users/leatherman1/Dropbox/ToDo/adaptive-partitioning-emulator-master/AdditionalFunctions.R")
+
+
+# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/CornerPeakFunction.R")
+# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
+# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
+# source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
 
 
 #Set starting parameters
@@ -25,7 +37,7 @@ initialIteration <- rep(iteration, numInputs)
 initialIteration
 
 #Create a representation of all points
-points <- data.frame(
+dat <- data.frame(
   regions = initialRegion,
   #outputs = franke4D(x) # four dimensional Franke Function
   outputs = cornerPeak(x), #corner peak function
@@ -42,7 +54,7 @@ initialUpperBounds <- rep(1,dimensions)
 initialRegionID <- 1
 
 #Calculate the CV estimate of GP prediction error over R1
-R1_Error <- GP_LOOCV(points)
+R1_Error <- GP_LOOCV(dat)
 
 #Create a representation for all regions, initialized with only region 1
 regions <- data.frame(
@@ -70,12 +82,12 @@ while(designSize < maxDesignSize){
   #Find the region with the largest prediction error
   maxErrorRegionIndex <- which.max(regions$errors) # k*
   maxErrorRegion <- regions[regions$regionID == maxErrorRegionIndex,] # Rk*
-  maxErrorRegionPts <- points[points$regions == maxErrorRegionIndex,]
+  maxErrorRegionPts <- dat[dat$regions == maxErrorRegionIndex,]
   
   #Find the number of points that currently lie in Rk*
-  pointsRk <- points[points$regions == maxErrorRegionIndex,]
+  pointsRk <- dat[dat$regions == maxErrorRegionIndex,]
   numPointsRk <- nrow(pointsRk) # n*
-
+  
   #Generate a new random (2n0 - n*) x d LHD within Rk
   set.seed(seed = NULL)
   numNewInputs <- (2 * numInputs) - numPointsRk
@@ -106,9 +118,9 @@ while(designSize < maxDesignSize){
     outputs = newOutputs, 
     inputs = newInputs,
     iterations = newIterations
-    )
-  points <- rbind(points, newPoints)
-  
+  )
+  dat <- rbind(dat, newPoints)
+  maxErrorRegionPts = rbind(maxErrorRegionPts, newPoints)
   #Make all of algorithm 2 into a function
   #Choose dimension for splitting, j*
   #Create vector of within region var to between region var
@@ -166,7 +178,7 @@ while(designSize < maxDesignSize){
     varWithinToBetween
     j = j + 1
   }
-
+  
   #Find the dimension with the largest ration of varWithin to varBetween 
   splittingDimensionIndex <- which.max(varWithinToBetween) # j*
   #Find the midpoint of the dimension j*
@@ -177,12 +189,12 @@ while(designSize < maxDesignSize){
   splittingDimensionInput_Index <- (inputStartIndex - 1) + splittingDimensionIndex
   pointsGreaterThanMidpoint <- maxErrorRegionPts[ , splittingDimensionInput_Index] > splittingMidpoint
   #Split the region at this midpoint
-  points$regions[pointsGreaterThanMidpoint] <- newRegionIndex
+  dat$regions[pointsGreaterThanMidpoint] <- newRegionIndex
   
   #Change the bounds of the original region
   lowerBoundIndex <- (lowerBoundStartIndex - 1) + splittingDimensionIndex
   upperBoundIndex <- (upperBoundStartIndex - 1) + splittingDimensionIndex
-  regions[ ,upperBoundIndex][regions$regionID == maxErrorRegionIndex] <- splittingMidpoint
+  regions[regions$regionID == maxErrorRegionIndex,upperBoundIndex] <- splittingMidpoint
   
   #Create a new region
   newRegion <- data.frame(
@@ -190,43 +202,45 @@ while(designSize < maxDesignSize){
     maxErrorRegion[ 1, lowerBoundStartIndex:lowerBoundEndIndex], 
     maxErrorRegion[ 1, upperBoundStartIndex:upperBoundEndIndex],
     errors = NA
-    )
+  )
   regions <- rbind(regions, newRegion)
-  regions[ ,lowerBoundIndex][regions$regionID == newRegionIndex] <- splittingMidpoint
+  regions[regions$regionID == newRegionIndex,lowerBoundIndex] <- splittingMidpoint
   regions[,2]
   lowerBoundIndex
   
   #Find CV estimate for both new regions 
-  rKpoints <- points[points$regions == maxErrorRegionIndex, ]
+  rKpoints <- dat[dat$regions == maxErrorRegionIndex, ]
   scaledPointsRK <- scaleValuesForGP(rKpoints)
   errorRK <- GP_LOOCV(scaledPointsRK)
-  regions[ ,errorIndex][regions$regionID == maxErrorRegionIndex] <- errorRK
+  regions[regions$regionID == maxErrorRegionIndex,errorIndex] <- errorRK
   
-  rK1points <- points[points$regions == newRegionIndex, ]
+  rK1points <- dat[dat$regions == newRegionIndex, ]
   scaledPointsRK1 <- scaleValuesForGP(rK1points) 
   errorRK1 <- GP_LOOCV(scaledPointsRK1)
-  regions[ ,errorIndex][regions$regionID == newRegionIndex] <- errorRK1
-
+  regions[regions$regionID == newRegionIndex,errorIndex] <- errorRK1
+  
   #Update the total number of regions 
   numRegions <- numRegions + 1
-
+  
   #Update the overall design size
-  designSize <- nrow(points) #also it seems like it didn't run this it ended with 61 points but design size 51
+  designSize <- nrow(dat) #also it seems like it didn't run this it ended with 61 points but design size 51
   print(designSize)
 }
-points
-designSize
+# dat
+# designSize
+regions
+
 ########## Plot input points ##########
 
-x1 <- points[ ,inputStartIndex]
-x2 <- points[ ,(inputStartIndex+1)]
-y <- points[ , outputStartIndex]
+x1 <- dat[ ,inputStartIndex]
+x2 <- dat[ ,(inputStartIndex+1)]
+y <- dat[ , outputStartIndex]
 
 color.gradient <- function(x, colors=c("light grey","dark blue"), colsteps=256) {
   return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
 }
 
-shapes <- as.character(points$iterations)
+shapes <- as.character(dat$iterations)
 
 plot(x = x1, 
      y = x2, 
@@ -234,8 +248,11 @@ plot(x = x1,
      col = color.gradient(y, colsteps=256)
 )
 
+
+########## 
+
 #library(ggplot2)
-#ggplot(points,
+#ggplot(pts,
 #       aes(x = inputs.1,
 #           y = inputs.2,
 #           color = outputs,
@@ -267,7 +284,7 @@ squaredErrors <- NULL
 currentRegionIndex <- 1
 while(currentRegionIndex <= numRegions){
   #Scale up points in region to be from 0 to 1
-  regionPoints <- points[points$regions == currentRegionIndex, ]
+  regionPoints <- dat[dat$regions == currentRegionIndex, ]
   scaledPoints <- scaleValuesForGP(regionPoints)
   
   #Create GP model
@@ -288,7 +305,7 @@ while(currentRegionIndex <= numRegions){
     
     currentDimensionIndex <- currentDimensionIndex + 1
   }
-
+  
   #Scale up test points to be from 0 to 1
   scaledTestPoints <- scaleValuesForGP(testPointsSubset)
   numScaledTestPoints <- nrow(scaledTestPoints)
@@ -312,7 +329,7 @@ while(currentRegionIndex <= numRegions){
     
     currentPointIndex <- currentPointIndex + 1
   }
-
+  
   currentRegionIndex <- currentRegionIndex + 1
 }
 
