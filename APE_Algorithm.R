@@ -27,7 +27,7 @@ x <- maximinLHS(numInputs, dimensions)
 initialRegion <- rep(1,numInputs)
 iteration <- 0
 initialIteration <- rep(iteration, numInputs)
-initialIteration
+
 
 #Create a representation of all points
 dat <- data.frame(
