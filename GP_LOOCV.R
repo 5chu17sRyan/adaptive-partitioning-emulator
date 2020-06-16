@@ -37,12 +37,12 @@ GP_LOOCV <- function(pts){
 }
 
 
-GP_5-foldCV <- function(dat){
+GP_5-foldCV <- function(5-foldInput){
   #Instantiate CV sum to be 0
   numFolds <- 5
   copyOfData <- dat
   sumCV <- 0
-  numPoints <- nrow(dat)
+  numPoints <- nrow(copyOfData)
   
   #Randomly divide the set of observations into k folds of approximately the same size.
   
@@ -50,11 +50,31 @@ GP_5-foldCV <- function(dat){
   shuffledPtIndecies <- sample(1:numPoints, numPoints, replace = FALSE) 
   shuffledPtIndecies #1,7,6,3,5,2,4,8
   
-  fold1 <- NA
-  fold2 <- NA
-  fold3 <- NA
-  fold4 <- NA
-  fold5 <- NA
+  copyOfData
+  
+  fold1 <- copyOfData[shuffledPtIndecies[] < numPoints/numFolds, ]
+  fold2 <- copyOfData[(shuffledPtIndecies[]) < (2*numPoints/numFolds) & shuffledPtIndecies[] >= numPoints/numFolds, ]
+  fold3 <- copyOfData[(shuffledPtIndecies[]) < (3*numPoints/numFolds) & shuffledPtIndecies[] >= 2*numPoints/numFolds, ]
+  fold4 <- copyOfData[(shuffledPtIndecies[]) < (4*numPoints/numFolds) & shuffledPtIndecies[] >= 3*numPoints/numFolds, ]
+  fold5 <- copyOfData[(shuffledPtIndecies[]) <= (5*numPoints/numFolds) & shuffledPtIndecies[] >= 4*numPoints/numFolds, ]
+  
+  fold1
+  fold2
+  fold3
+  fold4
+  fold5
+  
+  
+  
+  
+  for(i in  1:5){
+    grpind
+    removedPoints = copyOfData[]
+    
+  }
+  
+  
+  
   
   #assign folds 1->k to the points 1,2,...,k,1,2,...,k,...
   i <- 1
