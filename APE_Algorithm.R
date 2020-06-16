@@ -1,6 +1,6 @@
 library(GPfit)
 library(lhs)
-
+library(dplyr)
 
 
 #source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
@@ -250,6 +250,7 @@ testInputs <- maximinLHS(numTestInputs, dimensions)
 #testOutputs <- franke4D(x) # four dimensional Franke Function
 testOutputs <- cornerPeak(testInputs)
 
+
 testPoints <- data.frame( 
   #regions = initialRegion,
   outputs = testOutputs,
@@ -274,9 +275,10 @@ while(currentRegionIndex <= numRegions){
   currentRegion <- regions[regions$regionID == currentRegionIndex, ]
   testPointsSubset <- testPoints
   currentDimensionIndex <- 1
-  while(currentDimensionIndex < dimensions){
+  while(currentDimensionIndex <= dimensions){
     upperBound <- currentRegion[ ,upperBoundStartIndex + currentDimensionIndex - 1]
     lowerBound <- currentRegion[ ,lowerBoundStartIndex + currentDimensionIndex - 1]
+    #inputStartIndex is incorrect
     testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] <= upperBound )
     testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] > lowerBound )
     
