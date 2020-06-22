@@ -14,8 +14,8 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 
 
 #Set starting parameters
-maxDesignSize <- 64
-numInputs <- 8
+maxDesignSize <- 200
+numInputs <- 20
 #dimensions <- 4 # four dimensional Franke
 dimensions <- 2 # d # cornerPeak
 
@@ -47,7 +47,7 @@ initialUpperBounds <- rep(1,dimensions)
 initialRegionID <- 1
 
 #Calculate the CV estimate of GP prediction error over R1
-R1_Error <- GP_LOOCV(dat)
+R1_Error <- GP_kfoldCV(dat,5)
 
 #Create a representation for all regions, initialized with only region 1
 regions <- data.frame(
@@ -87,8 +87,6 @@ while(designSize < maxDesignSize){
   newInputs <- maximinLHS(numNewInputs, dimensions)
   
   #Scale to be within the lower an upper bounds of Rk
-  #"scaledNewInputs <- scaleValues(newInputs, upperBounds, lowerBounds)"
-  #"scaledNewInputs <- scaleInputsToRegion(newInputs, maxErrorRegion)" 
   i <- 0
   while(i < dimensions){
     upperBound = maxErrorRegion[ ,upperBoundStartIndex + i]
@@ -191,12 +189,12 @@ while(designSize < maxDesignSize){
   #Find CV estimate for both new regions 
   rKpoints <- dat[dat$regions == maxErrorRegionIndex, ]
   scaledPointsRK <- scaleValuesForGP(rKpoints)
-  errorRK <- GP_LOOCV(scaledPointsRK)
+  errorRK <- GP_kfoldCV(scaledPointsRK, 5)
   regions[regions$regionID == maxErrorRegionIndex,errorIndex] <- errorRK
   
   rK1points <- dat[dat$regions == newRegionIndex, ]
   scaledPointsRK1 <- scaleValuesForGP(rK1points) 
-  errorRK1 <- GP_LOOCV(scaledPointsRK1)
+  errorRK1 <- GP_kfoldCV(scaledPointsRK1, 5)
   regions[regions$regionID == newRegionIndex,errorIndex] <- errorRK1
   
   #Update the total number of regions 
@@ -252,7 +250,7 @@ testOutputs <- cornerPeak(testInputs)
 
 
 testPoints <- data.frame( 
-  #regions = initialRegion,
+  regions = NA,
   outputs = testOutputs,
   inputs = testInputs
 )
@@ -278,9 +276,8 @@ while(currentRegionIndex <= numRegions){
   while(currentDimensionIndex <= dimensions){
     upperBound <- currentRegion[ ,upperBoundStartIndex + currentDimensionIndex - 1]
     lowerBound <- currentRegion[ ,lowerBoundStartIndex + currentDimensionIndex - 1]
-    #inputStartIndex is incorrect
-    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] <= upperBound )
-    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] > lowerBound )
+    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex) - 1 ] <= upperBound )
+    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex) - 1 ] > lowerBound )
     
     currentDimensionIndex <- currentDimensionIndex + 1
   }

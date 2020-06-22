@@ -1,10 +1,10 @@
 #Scales values to 0 to 1 to be used in a GP
-scaleValuesForGP <- function(dat){
-  minimumValues = sapply(dat[,3:(dimensions+2)], min)
-  maximumValues = sapply(dat[,3:(dimensions+2)], max)
+scaleValuesForGP <- function(datPts){
+  minimumValues = sapply(datPts[,3:(dimensions+2)], min)
+  maximumValues = sapply(datPts[,3:(dimensions+2)], max)
   ranges = maximumValues - minimumValues
   
-  scaledData = dat
+  scaledData = datPts
   for (i in 1:dimensions){
     dimensionIndex <- i + 2
     scaledData[ , dimensionIndex] = (scaledData[ , dimensionIndex] - minimumValues[i]) / ranges[i]
