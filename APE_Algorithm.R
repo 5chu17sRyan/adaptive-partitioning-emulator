@@ -1,6 +1,6 @@
 library(GPfit)
 library(lhs)
-
+library(dplyr)
 
 
 #source("/Users/leatherman1/Downloads/adaptive-partitioning-emulator-master/CornerPeakFunction.R")
@@ -14,8 +14,8 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 
 
 #Set starting parameters
-maxDesignSize <- 64
-numInputs <- 8
+maxDesignSize <- 200
+numInputs <- 20
 #dimensions <- 4 # four dimensional Franke
 dimensions <- 2 # d # cornerPeak
 
@@ -27,7 +27,7 @@ x <- maximinLHS(numInputs, dimensions)
 initialRegion <- rep(1,numInputs)
 iteration <- 0
 initialIteration <- rep(iteration, numInputs)
-initialIteration
+
 
 #Create a representation of all points
 dat <- data.frame(
@@ -47,7 +47,7 @@ initialUpperBounds <- rep(1,dimensions)
 initialRegionID <- 1
 
 #Calculate the CV estimate of GP prediction error over R1
-R1_Error <- GP_LOOCV(dat)
+R1_Error <- GP_kfoldCV(dat,5)
 
 #Create a representation for all regions, initialized with only region 1
 regions <- data.frame(
@@ -87,8 +87,6 @@ while(designSize < maxDesignSize){
   newInputs <- maximinLHS(numNewInputs, dimensions)
   
   #Scale to be within the lower an upper bounds of Rk
-  #"scaledNewInputs <- scaleValues(newInputs, upperBounds, lowerBounds)"
-  #"scaledNewInputs <- scaleInputsToRegion(newInputs, maxErrorRegion)" 
   i <- 0
   while(i < dimensions){
     upperBound = maxErrorRegion[ ,upperBoundStartIndex + i]
@@ -168,10 +166,14 @@ while(designSize < maxDesignSize){
   
   #Look at points where their region is equal to maxErrorRegionIndex
   newRegionIndex <- numRegions + 1
+  newRegionIndex
   splittingDimensionInput_Index <- (inputStartIndex - 1) + splittingDimensionIndex
-  pointsGreaterThanMidpoint <- maxErrorRegionPts[ , splittingDimensionInput_Index] > splittingMidpoint
+  #pointsGreaterThanMidpoint <- maxErrorRegionPts[ , splittingDimensionInput_Index] > splittingMidpoint
+
+  pointsGreaterThanMidpoint <- dat[dat$regions == maxErrorRegionIndex,][ , splittingDimensionInput_Index] > splittingMidpoint
   #Split the region at this midpoint
-  dat$regions[pointsGreaterThanMidpoint] <- newRegionIndex
+  dat[dat$regions == maxErrorRegionIndex,][pointsGreaterThanMidpoint,]$regions <- newRegionIndex
+  
   
   #Change the bounds of the original region
   lowerBoundIndex <- (lowerBoundStartIndex - 1) + splittingDimensionIndex
@@ -191,12 +193,12 @@ while(designSize < maxDesignSize){
   #Find CV estimate for both new regions 
   rKpoints <- dat[dat$regions == maxErrorRegionIndex, ]
   scaledPointsRK <- scaleValuesForGP(rKpoints)
-  errorRK <- GP_LOOCV(scaledPointsRK)
+  errorRK <- GP_kfoldCV(scaledPointsRK, 5)
   regions[regions$regionID == maxErrorRegionIndex,errorIndex] <- errorRK
   
   rK1points <- dat[dat$regions == newRegionIndex, ]
   scaledPointsRK1 <- scaleValuesForGP(rK1points) 
-  errorRK1 <- GP_LOOCV(scaledPointsRK1)
+  errorRK1 <- GP_kfoldCV(scaledPointsRK1, 5)
   regions[regions$regionID == newRegionIndex,errorIndex] <- errorRK1
   
   #Update the total number of regions 
@@ -218,10 +220,11 @@ color.gradient <- function(x, colors=c("light grey","dark blue"), colsteps=256) 
 }
 
 shapes <- as.character(dat$iterations)
+shapesRegions <- as.character(dat$regions)
 
 plot(x = x1, 
      y = x2, 
-     pch = shapes, 
+     pch = shapesRegions, 
      col = color.gradient(y, colsteps=256)
 )
 
@@ -250,8 +253,9 @@ testInputs <- maximinLHS(numTestInputs, dimensions)
 #testOutputs <- franke4D(x) # four dimensional Franke Function
 testOutputs <- cornerPeak(testInputs)
 
+
 testPoints <- data.frame( 
-  #regions = initialRegion,
+  regions = NA,
   outputs = testOutputs,
   inputs = testInputs
 )
@@ -259,26 +263,33 @@ testPoints <- data.frame(
 #For each region
 squaredErrors <- NULL
 currentRegionIndex <- 1
+numRegions
 while(currentRegionIndex <= numRegions){
   #Scale up points in region to be from 0 to 1
   regionPoints <- dat[dat$regions == currentRegionIndex, ]
-  scaledPoints <- scaleValuesForGP(regionPoints)
+  dat$regions
+  currentRegionIndex
+  dat
+  scaledPoints <- scaleValuesForGP(regionPoints)#Only one point in regionPoints, can't scale properly
+  regions
+  scaledPoints
+  regionPoints
   
   #Create GP model
   inputEndIndex <- inputStartIndex + dimensions - 1
   inputsGP <- scaledPoints[ , inputStartIndex:inputEndIndex]
   outputsGP <- scaledPoints[, outputStartIndex]
-  GPmodel <- GP_fit(inputsGP, outputsGP)
+  GPmodel <- GP_fit(inputsGP, outputsGP) #Error in this line of code
   
   #Subset test points to be just in this region
   currentRegion <- regions[regions$regionID == currentRegionIndex, ]
   testPointsSubset <- testPoints
   currentDimensionIndex <- 1
-  while(currentDimensionIndex < dimensions){
+  while(currentDimensionIndex <= dimensions){
     upperBound <- currentRegion[ ,upperBoundStartIndex + currentDimensionIndex - 1]
     lowerBound <- currentRegion[ ,lowerBoundStartIndex + currentDimensionIndex - 1]
-    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] <= upperBound )
-    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex - 1 ) ] > lowerBound )
+    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex) - 1 ] <= upperBound )
+    testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex) - 1 ] > lowerBound )
     
     currentDimensionIndex <- currentDimensionIndex + 1
   }
@@ -317,3 +328,5 @@ RMSE <- MSE^(1/2)
 #Calculate MASE
 maxSEIndex <- which.max(squaredErrors)
 MASE <- squaredErrors[maxSEIndex]
+
+traceback()
