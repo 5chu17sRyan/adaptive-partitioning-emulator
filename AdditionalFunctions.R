@@ -1,10 +1,15 @@
 #Scales values to 0 to 1 to be used in a GP
 scaleValuesForGP <- function(datPts){
   minimumValues = sapply(datPts[,3:(dimensions+2)], min)
+  minimumValues
   maximumValues = sapply(datPts[,3:(dimensions+2)], max)
+  maximumValues
   ranges = maximumValues - minimumValues
   
-  scaledData = datPts
+  regions
+  
+  #There was an equal sign here, in my experience = is a copies by reference instead of by value
+  scaledData <- datPts
   for (i in 1:dimensions){
     dimensionIndex <- i + 2
     scaledData[ , dimensionIndex] = (scaledData[ , dimensionIndex] - minimumValues[i]) / ranges[i]

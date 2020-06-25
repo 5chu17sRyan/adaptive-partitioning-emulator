@@ -166,10 +166,14 @@ while(designSize < maxDesignSize){
   
   #Look at points where their region is equal to maxErrorRegionIndex
   newRegionIndex <- numRegions + 1
+  newRegionIndex
   splittingDimensionInput_Index <- (inputStartIndex - 1) + splittingDimensionIndex
-  pointsGreaterThanMidpoint <- maxErrorRegionPts[ , splittingDimensionInput_Index] > splittingMidpoint
+  #pointsGreaterThanMidpoint <- maxErrorRegionPts[ , splittingDimensionInput_Index] > splittingMidpoint
+
+  pointsGreaterThanMidpoint <- dat[dat$regions == maxErrorRegionIndex,][ , splittingDimensionInput_Index] > splittingMidpoint
   #Split the region at this midpoint
-  dat$regions[pointsGreaterThanMidpoint] <- newRegionIndex
+  dat[dat$regions == maxErrorRegionIndex,][pointsGreaterThanMidpoint,]$regions <- newRegionIndex
+  
   
   #Change the bounds of the original region
   lowerBoundIndex <- (lowerBoundStartIndex - 1) + splittingDimensionIndex
@@ -216,10 +220,11 @@ color.gradient <- function(x, colors=c("light grey","dark blue"), colsteps=256) 
 }
 
 shapes <- as.character(dat$iterations)
+shapesRegions <- as.character(dat$regions)
 
 plot(x = x1, 
      y = x2, 
-     pch = shapes, 
+     pch = shapesRegions, 
      col = color.gradient(y, colsteps=256)
 )
 
@@ -258,16 +263,23 @@ testPoints <- data.frame(
 #For each region
 squaredErrors <- NULL
 currentRegionIndex <- 1
+numRegions
 while(currentRegionIndex <= numRegions){
   #Scale up points in region to be from 0 to 1
   regionPoints <- dat[dat$regions == currentRegionIndex, ]
-  scaledPoints <- scaleValuesForGP(regionPoints)
+  dat$regions
+  currentRegionIndex
+  dat
+  scaledPoints <- scaleValuesForGP(regionPoints)#Only one point in regionPoints, can't scale properly
+  regions
+  scaledPoints
+  regionPoints
   
   #Create GP model
   inputEndIndex <- inputStartIndex + dimensions - 1
   inputsGP <- scaledPoints[ , inputStartIndex:inputEndIndex]
   outputsGP <- scaledPoints[, outputStartIndex]
-  GPmodel <- GP_fit(inputsGP, outputsGP)
+  GPmodel <- GP_fit(inputsGP, outputsGP) #Error in this line of code
   
   #Subset test points to be just in this region
   currentRegion <- regions[regions$regionID == currentRegionIndex, ]
@@ -316,3 +328,5 @@ RMSE <- MSE^(1/2)
 #Calculate MASE
 maxSEIndex <- which.max(squaredErrors)
 MASE <- squaredErrors[maxSEIndex]
+
+traceback()
