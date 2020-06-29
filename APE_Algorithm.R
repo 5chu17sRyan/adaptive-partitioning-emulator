@@ -95,6 +95,11 @@ while(designSize < maxDesignSize){
     i = i + 1
   }
   
+  inputEndIndex <- inputStartIndex + dimensions - 1
+  originalInputs <- dat[ ,inputStartIndex:inputEndIndex]
+  addedInputs <- newInputs
+  #maximinSmartSwap(originalInputs, addedInputs)
+  
   newPointsRegionID <- rep(maxErrorRegionIndex, numNewInputs)
   
   #Evaluate the new responses at this new LHD : y(new)
