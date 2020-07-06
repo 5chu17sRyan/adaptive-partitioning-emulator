@@ -11,11 +11,12 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/GP_LOOCV.R")
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/FrankeFunction4D.R")
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
+source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/SmartSwap.R")
 
 
 #Set starting parameters
-maxDesignSize <- 200
-numInputs <- 20
+maxDesignSize <- 64
+numInputs <- 4
 #dimensions <- 4 # four dimensional Franke
 dimensions <- 2 # d # cornerPeak
 
@@ -97,8 +98,11 @@ while(designSize < maxDesignSize){
   
   inputEndIndex <- inputStartIndex + dimensions - 1
   originalInputs <- dat[ ,inputStartIndex:inputEndIndex]
+  colnames(newInputs) <- colnames(originalInputs)
   addedInputs <- newInputs
-  #maximinSmartSwap(originalInputs, addedInputs)
+  newInputs
+  newInputs <- maximinSmartSwap(originalInputs, addedInputs)
+  newInputs
   
   newPointsRegionID <- rep(maxErrorRegionIndex, numNewInputs)
   
