@@ -13,10 +13,11 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/AdditionalFunctions.R")
 source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioning Emulator/SmartSwap.R")
 
+startTime <- Sys.time()
 
 #Set starting parameters
 maxDesignSize <- 64
-numInputs <- 4
+numInputs <- 8
 #dimensions <- 4 # four dimensional Franke
 dimensions <- 2 # d # cornerPeak
 
@@ -119,6 +120,7 @@ while(designSize < maxDesignSize){
     inputs = newInputs,
     iterations = newIterations
   )
+  colnames(newPoints) <- colnames(dat)
   dat <- rbind(dat, newPoints)
   maxErrorRegionPts = rbind(maxErrorRegionPts, newPoints)
   #Make all of algorithm 2 into a function
@@ -214,9 +216,10 @@ while(designSize < maxDesignSize){
   numRegions <- numRegions + 1
   
   #Update the overall design size
-  designSize <- nrow(dat) #also it seems like it didn't run this it ended with 61 points but design size 51
-  print(designSize)
+  designSize <- nrow(dat) #also it seems like it didn't run this it ended with 61 points but design size 5
 }
+
+endTime <- Sys.time()
 
 ########## Plot input points ##########
 
@@ -287,43 +290,59 @@ while(currentRegionIndex <= numRegions){
   #Create GP model
   inputEndIndex <- inputStartIndex + dimensions - 1
   inputsGP <- scaledPoints[ , inputStartIndex:inputEndIndex]
+  inputsGP
   outputsGP <- scaledPoints[, outputStartIndex]
-  GPmodel <- GP_fit(inputsGP, outputsGP) #Error in this line of code
+  outputsGP
+  GPmodel <- GP_fit(inputsGP, outputsGP)
   
   #Subset test points to be just in this region
   currentRegion <- regions[regions$regionID == currentRegionIndex, ]
+  currentRegion
   testPointsSubset <- testPoints
+  testPointsSubset
   currentDimensionIndex <- 1
   while(currentDimensionIndex <= dimensions){
     upperBound <- currentRegion[ ,upperBoundStartIndex + currentDimensionIndex - 1]
+    upperBound
     lowerBound <- currentRegion[ ,lowerBoundStartIndex + currentDimensionIndex - 1]
+    lowerBound
     testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex) - 1 ] <= upperBound )
     testPointsSubset <- subset( testPointsSubset, testPointsSubset[ , ( inputStartIndex + currentDimensionIndex) - 1 ] > lowerBound )
+    testPointsSubset
     
     currentDimensionIndex <- currentDimensionIndex + 1
   }
   
   #Scale up test points to be from 0 to 1
   scaledTestPoints <- scaleValuesForGP(testPointsSubset)
+  scaledTestPoints
   numScaledTestPoints <- nrow(scaledTestPoints)
+  numScaledTestPoints
   
   #For each test point in region
   currentPointIndex <- 1
   while(currentPointIndex <= numScaledTestPoints){
     #Predict output using GP model
     currentPoint <- scaledTestPoints[currentPointIndex, ]
-    currentInputs <- currentPoint[ ,(inputStartIndex-1):(inputEndIndex-1)]
+    currentPoint
+    currentInputs <- currentPoint[ ,(inputStartIndex):(inputEndIndex)]
+    currentInputs
     prediction <- predict(GPmodel, currentInputs)
+    prediction
     
     predictedOutput <- prediction$Y_hat
+    predictedOutput
     actualOutput <- currentPoint[ ,(outputStartIndex-1)]
+    actualOutput
     
     #Calculate squared error
     squaredError <- (predictedOutput - actualOutput)^2
-    
+    squaredError
+
     #Store squared error
+    squaredErrors
     squaredErrors <- c(squaredErrors, squaredError)
-    
+    squaredErrors
     currentPointIndex <- currentPointIndex + 1
   }
   
@@ -339,3 +358,6 @@ maxSEIndex <- which.max(squaredErrors)
 MASE <- squaredErrors[maxSEIndex]
 
 traceback()
+print(RMSE)
+print(MASE)
+print(endTime - startTime)

@@ -1,3 +1,13 @@
+########################################################################
+#library(lhs)
+#set.seed(NULL)
+#originalInputs = maximinLHS(7, 2)
+#addedInputs = maximinLHS(7, 2)
+
+### run this after running everything else!
+#(addthesepoints = maximinSmartSwap(originalInputs,addedInputs))
+########################################################################
+
 maximinSmartSwap<- function(originalInputs, addedInputs){
   
   #STEP 0
@@ -6,7 +16,7 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
   
   #Set minimum distance to be 0
   maxMinimumInterpointDistance <- 0
-
+  
   
   
   #STEP 1
@@ -16,6 +26,11 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
   totalInputs <- originalInputs
   totalInputs <- rbind(totalInputs, addedInputs)
   
+  #Calculate number of inputs in each subset for later use
+  numOriginalInputs <- nrow(originalInputs)
+  numAddedInputs <- nrow(addedInputs) 
+  numTotalInputs <- nrow(totalInputs)
+  
   #Plot what the points look like before swapping
   shapes <- c(rep(1, numOriginalInputs), rep(2, numAddedInputs))
   plot(x = totalInputs[,1], 
@@ -24,29 +39,24 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
        main = "Before"
   )
   
-  #Calculate number of inputs in each subset for later use
-  numOriginalInputs <- nrow(originalInputs)
-  numAddedInputs <- nrow(addedInputs)
-  numTotalInputs <- nrow(totalInputs)
-  
   #STEP 2
   #Calculate the minimum interpoint distance for all points
   interpointDistances <- calculateInterpointDistances(totalInputs)
   maxMinimumInterpointDistance <- minimumInterpointDistance(interpointDistances)
   
   #Record the points giving rise to the min interpoint distance
-    #Second point in vector will always have a greater index by design
+  #Second point in vector will always have a greater index by design
   maxMinimumInterpointDistanceIndex <- minimumInterpointDistanceIndex(interpointDistances)
-
+  
   #STEP 3
-  #Is step three needed for our algorithm, why do we need to store the choices. Why not just loop through all choices
-  
-  #Calculate the threshold for exiting the next loop
-  originalDistances <- calculateInterpointDistances(originalInputs)
-  originalMinDistance <- minimumInterpointDistance(originalDistances)
-  exitThreshold <- (numOriginalInputs / numTotalInputs) * originalMinDistance
-  
-  repeat{
+  for(numtimes in 1:10){  
+    
+    #Calculate the threshold for exiting the next loop
+    originalDistances <- calculateInterpointDistances(originalInputs)
+    originalMinDistance <- minimumInterpointDistance(originalDistances)
+    exitThreshold <- (numOriginalInputs / numTotalInputs) * originalMinDistance
+    
+    
     #Determine whether the two points are from different subsets i.e. added and original Inputs
     firstMinPointIndex <- maxMinimumInterpointDistanceIndex[1]
     secondMinPointIndex <- maxMinimumInterpointDistanceIndex[2]
@@ -54,14 +64,17 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
     firstPtAddedSecondOriginal <- (firstMinPointIndex > numOriginalInputs) & (secondMinPointIndex <= numOriginalInputs)
     firstPtOriginalSecondAdded <- (firstMinPointIndex <= numOriginalInputs) & (secondMinPointIndex > numOriginalInputs)
     minDistPtsDifferent <- firstPtAddedSecondOriginal | firstPtOriginalSecondAdded
+    
+    minDistPtsBothAdded <- (firstMinPointIndex > numOriginalInputs) & (secondMinPointIndex > numOriginalInputs)
 
     #Only start step 4 if the points are from different subsets
-    if(minDistPtsDifferent){
+    if(minDistPtsDifferent | (minDistPtsBothAdded & numtimes > 1)){
       #If only one point is in the added points, by construction it must be the second point.
       minDistAddedPtIndex <- secondMinPointIndex - numOriginalInputs
+      
       #STEP 4
       #Every combination of points from the minimum distance, each possible dimension, and possible remaing points
-      for(j in 1:dimensions){
+      for(j in 1:ncol(originalInputs)){ 
         for(k in 1:numAddedInputs){
           #Checking to not swap the point with itself
           minDistAddedPtIndex
@@ -83,10 +96,8 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
           swappedInputs[secondMinPointIndex,j] <- swappedElement_RemainingPt
           
           #Plot what the inputs look like after each swap
-          plot(x = swappedInputs[,1], 
-               y = swappedInputs[,2], 
-               pch = shapes
-          )
+          #plot(x = swappedInputs[,1], y = swappedInputs[,2], pch = shapes)
+           
           
           #STEP 5
           #Calculate the interpoint distance of the perturbed design
@@ -102,6 +113,7 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
             next
           }
           if(newMinDistance > maxMinimumInterpointDistance){
+            
             #Set perturbed design to be the current design
             totalInputs <- swappedInputs 
             
@@ -109,10 +121,13 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
             maxMinimumInterpointDistance <- newMinDistance
             
             #Record the rows and columns associated with the minimum distance
-            maxMinimumInterpointDistanceIndex <- minimumInterpointDistanceIndex
+            maxMinimumInterpointDistanceIndex <- minimumInterpointDistanceIndex(recalculatedDistances)
+            
+            #Plot what the inputs look like after each swap
+            #plot(x = totalInputs[,1], y = totalInputs[,2], pch = shapes)
             
             #Repeat loop starting at STEP 3
-            break
+            break 
           }
         }
         if(newMinDistance > maxMinimumInterpointDistance){
@@ -120,9 +135,9 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
         }
       }
     }
-    if(differenceBetweenMinDistances < exitThreshold){
-      break
-    }
+    ### if(newMinDistance > exitThreshold){ ### I was thinking about final interpoint distances instead of the change in distances
+    ###    break
+    ###  }
   }
   
   bestNewInputs <- totalInputs[(numOriginalInputs+1):numTotalInputs, ]
@@ -138,7 +153,6 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
 #Distance Calculation is correct, checked by hand.
 calculateInterpointDistances <- function(inputs)
 {
-  inputs <- totalInputs
   numTotalInputs <- nrow(inputs)
   distances <- matrix(NA, nrow = numTotalInputs, ncol = numTotalInputs)
   for(i in 1:(numTotalInputs-1))
@@ -166,7 +180,7 @@ minimumInterpointDistanceIndex <- function(distances)
   
   row <- minDistanceLocation %% numberOfTotalInputs
   column <- ceiling(minDistanceLocation / numberOfTotalInputs)
-
+  
   minInterpointDistIndex <- c(row, column)
   return(minInterpointDistIndex)
 }
@@ -179,6 +193,11 @@ recalculateInterpointDistances <- function(inputs, originalDistances, firstPoint
   for(n in 1:numTotalInputs){
     #Don't calculate the distance between the first swapped point and itself
     if(n == firstPointSwappedIndex){
+      next
+    }
+    
+    #Distance does not change between the first swapped point and the second swapped point
+    if(n == secondPointSwappedIndex){
       next
     }
     
@@ -195,12 +214,13 @@ recalculateInterpointDistances <- function(inputs, originalDistances, firstPoint
   }
   
   #Repeat recalculations for the second swapped point
-  secondPointSwapped <- inputs[secondPointSwappedIndex, ]{
+  secondPointSwapped <- inputs[secondPointSwappedIndex, ]
+  for(m in 1:numTotalInputs){
     #Don't calculate the distance between the first swapped point and itself
     if(m == secondPointSwappedIndex){
       next
     }
-    #Don't recalculate the distance between the first swapped point and the second swapped point
+    #Distance does not change between the first swapped point and the second swapped point
     if(m == firstPointSwappedIndex){
       next
     }
@@ -211,10 +231,10 @@ recalculateInterpointDistances <- function(inputs, originalDistances, firstPoint
     if(secondPointSwappedIndex < m){
       recalculatedDistances[secondPointSwappedIndex, m] <- newDistance2
     }
-    else if(firstPointSwappedIndex > m){
+    else if(secondPointSwappedIndex > m){
       recalculatedDistances[m, secondPointSwappedIndex] <- newDistance2
     }
   }
-
+  
   return(recalculatedDistances)
 }
