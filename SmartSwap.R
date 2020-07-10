@@ -33,11 +33,7 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
   
   #Plot what the points look like before swapping
   shapes <- c(rep(1, numOriginalInputs), rep(2, numAddedInputs))
-  plot(x = totalInputs[,1], 
-       y = totalInputs[,2], 
-       pch = shapes,
-       main = "Before"
-  )
+  #plot(x = totalInputs[,1], y = totalInputs[,2], pch = shapes,main = "Before")
   
   #STEP 2
   #Calculate the minimum interpoint distance for all points
@@ -141,11 +137,7 @@ maximinSmartSwap<- function(originalInputs, addedInputs){
   }
   
   bestNewInputs <- totalInputs[(numOriginalInputs+1):numTotalInputs, ]
-  plot(x = totalInputs[,1], 
-       y = totalInputs[,2], 
-       pch = shapes,
-       main = "After"
-  )
+  #plot(x = totalInputs[,1], y = totalInputs[,2], pch = shapes,main = "After")
   
   return(bestNewInputs)
 }

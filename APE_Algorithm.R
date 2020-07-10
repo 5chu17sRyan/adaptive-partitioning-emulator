@@ -16,10 +16,10 @@ source("C:/Users/ryans/OneDrive/Desktop/KSSS with Leatherman/Adaptive Partitioni
 startTime <- Sys.time()
 
 #Set starting parameters
-maxDesignSize <- 64
-numInputs <- 8
+maxDesignSize <- 200
+numInputs <- 50
 #dimensions <- 4 # four dimensional Franke
-dimensions <- 2 # d # cornerPeak
+dimensions <- 5 # d # cornerPeak
 
 #Create initial LHD
 set.seed(seed = NULL)
@@ -49,7 +49,8 @@ initialUpperBounds <- rep(1,dimensions)
 initialRegionID <- 1
 
 #Calculate the CV estimate of GP prediction error over R1
-R1_Error <- GP_kfoldCV(dat,5)
+#R1_Error <- GP_kfoldCV(dat,5)
+R1_Error <- GP_LOOCV(dat)
 
 #Create a representation for all regions, initialized with only region 1
 regions <- data.frame(
@@ -101,9 +102,7 @@ while(designSize < maxDesignSize){
   originalInputs <- dat[ ,inputStartIndex:inputEndIndex]
   colnames(newInputs) <- colnames(originalInputs)
   addedInputs <- newInputs
-  newInputs
-  newInputs <- maximinSmartSwap(originalInputs, addedInputs)
-  newInputs
+  #newInputs <- maximinSmartSwap(originalInputs, addedInputs)
   
   newPointsRegionID <- rep(maxErrorRegionIndex, numNewInputs)
   
@@ -204,12 +203,14 @@ while(designSize < maxDesignSize){
   #Find CV estimate for both new regions 
   rKpoints <- dat[dat$regions == maxErrorRegionIndex, ]
   scaledPointsRK <- scaleValuesForGP(rKpoints)
-  errorRK <- GP_kfoldCV(scaledPointsRK, 5)
+  #errorRK <- GP_kfoldCV(scaledPointsRK, 5)
+  errorRK <- GP_LOOCV(scaledPointsRK)
   regions[regions$regionID == maxErrorRegionIndex,errorIndex] <- errorRK
   
   rK1points <- dat[dat$regions == newRegionIndex, ]
   scaledPointsRK1 <- scaleValuesForGP(rK1points) 
-  errorRK1 <- GP_kfoldCV(scaledPointsRK1, 5)
+  #errorRK1 <- GP_kfoldCV(scaledPointsRK1, 5)
+  errorRK1 <- GP_LOOCV(scaledPointsRK1)
   regions[regions$regionID == newRegionIndex,errorIndex] <- errorRK1
   
   #Update the total number of regions 
